@@ -116,7 +116,7 @@ public class myWorld {
             }
 
         }
-        
+
         homePositions = new Artifact[homes];
         world = new Artifact[col][row];
 
@@ -195,24 +195,24 @@ public class myWorld {
                 //randomly generate homes on the land artifacts
                 Random rand = new Random();
 
-             // nextInt is normally exclusive of the top value,
+                // nextInt is normally exclusive of the top value,
                 // so add 1 to make it inclusive
                 int randomY = rand.nextInt((row));
                 System.out.println("randomY= " + randomY);
                 int randomX = rand.nextInt((col));
                 System.out.println("randomX= " + randomX);
-             // System.out.println(world[randomX][randomY] instanceof land);
+                // System.out.println(world[randomX][randomY] instanceof land);
                 //System.out.println(!(world[randomX][randomY] instanceof home));
                 world[randomX][randomY].getMyType();
 
                 if (world[randomX][randomY] instanceof land && !(world[randomX][randomY] instanceof home)) {
-                    
+
                     System.out.println("homeCount is now " + homeCount + "and the amount of set homes is" + homes);
                     home h = new home();
                     world[randomX][randomY] = h;
-                    homePositions[homeCount]= h;
+                    homePositions[homeCount] = h;
+                    ((home) world[randomX][randomY]).setHomeNumber(homeCount); //home identification tag is 0 indexed
                     homeCount++;
-                    ((home) world[randomX][randomY]).setHomeNumber(homeCount);
 
                 }
 
@@ -238,12 +238,11 @@ public class myWorld {
         }
 
     }
-    
-    public static Artifact[] getHomePositions(){
-    
-    return homePositions;
-    
-    }
-    
-}
 
+    public static Artifact[] getHomePositions() {
+
+        return homePositions;
+
+    }
+
+}
