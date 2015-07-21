@@ -6,12 +6,7 @@
 package neuralants;
 
 import java.io.BufferedReader;
-import java.io.StringReader;
-import java.lang.String;
-import java.util.regex.Pattern;
-import java.util.regex.Matcher;
 import java.util.Random;
-import java.lang.Exception;
 import java.io.*;
 
 /**
@@ -93,6 +88,7 @@ public class myWorld {
                         homes = Integer.parseInt(homeS);
                         System.out.println("Number of Homes is set to: " + homes);
                         home.setAmountOfHomes(homes);
+                        land.setAmountOfHomes(homes);
 
                         if (homes == 0) {
                             System.out.println("World must have atleast 1 home");
@@ -264,8 +260,8 @@ public class myWorld {
                     System.out.println("homeCount is now " + homeCount + "and the amount of set homes is" + homes);
                     home h = new home();
                     world[randomX][randomY] = h;
-                    homePositions[homeCount] = h;
                     ((home) world[randomX][randomY]).setHomeNumber(homeCount); //home identification tag is 0 indexed
+                    homePositions[homeCount] = world[randomX][randomY];
                     homeCount++;
 
                 }
@@ -286,6 +282,12 @@ public class myWorld {
 
         return homePositions;
 
+    }
+    
+    public static void printHomePositions(){
+        for(int i= 0; i<homePositions.length;i++){
+            System.out.println("position of homeNumber "+ i+ " is "+homePositions[i].getX()+" , "+homePositions[i].getY());
+        }
     }
 
 }

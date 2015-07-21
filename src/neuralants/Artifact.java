@@ -5,6 +5,10 @@
  */
 package neuralants;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.*;
+
 /**
  *
  * @author tooji
@@ -68,11 +72,98 @@ class water extends Artifact {
 
 class land extends Artifact {
 
-    private int[] foodPheremoneScent;
+    private static int amountOfHomes;
+    private int[] foodPheremoneScent; //only those ants from the same tribe can recognize
+    private int[] homePheremoneScent; //only those ants from the same tribe can recognize
+    private int[] homeScent;    //only those ants from the same tribe can recognize
+    private int foodScent;      //All ants can recognize
 
+    public static void setAmountOfHomes(int i) {
+        amountOfHomes = i;
+    }
+
+    public void initializePheremoneArrays() {
+        try {
+            if (amountOfHomes == 0) {
+                System.out.println("FoodPheremone Array cannot be initialized because amountOfHomes is 0/undefined/uninitialized");
+                throw new IOException();
+            } else {
+                foodPheremoneScent = new int[amountOfHomes];
+                homePheremoneScent = new int[amountOfHomes];
+                homeScent = new int[amountOfHomes]; //actual home scent (different from homePheremoneScent)
+            }
+        } catch (IOException e) {
+            System.out.println(e.getClass());
+        }
+    }
+
+    /*
+     *Updates the food pheremone scent at this location
+     *@param h is the tribe/home number of the ant
+     */
+    public void updateFoodPheremoneScent(int h) {
+        foodPheremoneScent[h]++;
+    }
+    /*
+     *Updates the home pheremone scent at this location
+     *@param h is the tribe/home number of the ant
+     */
+
+    public void updateHomePheremoneScent(int h) {
+        homePheremoneScent[h]++;
+    }
+
+    /*
+     *Updates the home scent at this location
+     *@param h is the tribe/home number of the ant
+     */
+    public void updateHomeScent(int h) {
+        homePheremoneScent[h]++;
+    }
+
+    public void updateFoodScent() {
+        foodScent++;
+    }
+    /*
+     *adds to the home scent at this location
+     *@param h is the tribe/home number of the ant
+     *@param n is the amount of scent being added to the current amount
+     */
+
+    public void addFoodPheremoneScent(int h, int n) {
+        foodPheremoneScent[h] = foodPheremoneScent[h] + n;
+
+    }
+
+    public void addHomePheremoneScent(int h, int n) {
+        homePheremoneScent[h] = homePheremoneScent[h] + n;
+
+    }
 }
 
 class plant extends Artifact {
+
+    private int amountOfFood;
+
+    public void setAmountOfFood(int n) {
+        amountOfFood = n;
+    }
+
+    public void takeOneFood() {
+        amountOfFood--;
+    }
+
+    public void GenerateOneFood() {
+        amountOfFood++;
+    }
+
+    public void addFood(int f) {
+        amountOfFood = amountOfFood + f;
+    }
+
+    public void takeAwayFood(int f) {
+        amountOfFood = amountOfFood - f;
+    }
 
 }
 
@@ -85,7 +176,7 @@ class home extends Artifact {
     private int homeNumber;
     private static int amountOfHomes;
     private static int amountOfAnts;
-    private static Ant[] colony;
+    Map<Integer, Ant> colony = new HashMap<>();
 
     /*
      *Generates Ant Colony with amount of ants specified
@@ -93,11 +184,16 @@ class home extends Artifact {
      *sets every ant with it's initial position at the home's position
      */
     public void generateAntColony() {
-        colony = new Ant[amountOfAnts];
 
-        for (int i = 0; i < colony.length; i++) {
-            colony[i].setHomeNumber(homeNumber); //tags ant with tribe identity
-            colony[i].setPosition(this.getX(), this.getY());
+        for (int i = 0; i < amountOfAnts; i++) {
+            colony.put(i, new Ant());
+            colony.get(i).setAntID(i);
+            
+
+            /*
+             colony[i].setHomeNumber(homeNumber); //tags ant with tribe identity
+             colony[i].setPosition(this.getX(), this.getY());
+             */
         }
 
     }

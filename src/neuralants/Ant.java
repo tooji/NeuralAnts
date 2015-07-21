@@ -14,10 +14,16 @@ public class Ant {
     private int xPos;
     private int yPos;
     private int homeNumber;
+    private int antID;
     private boolean hasFood;
     private boolean stateFindFood;
     private boolean stateFindHome;
 
+    
+    public void setAntID(int id){
+        antID = id;
+        
+    }
     /*
      *Sets identifier of the tribe the ant belonds to
      */
