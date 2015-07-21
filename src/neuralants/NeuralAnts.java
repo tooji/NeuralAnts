@@ -23,5 +23,6 @@ public class NeuralAnts {
         String path = keyboard.nextLine();
 
         myWorld.createTerrain(path);
+        myWorld.GenerateHomes();
     }
 }

@@ -23,16 +23,24 @@ public class myWorld {
     private static int row;
     private static int col;
     private static int homes;
+    private static int numAnts;
+    private static boolean worldGeneratedFlag;
     private static Artifact[][] world;
     private static Artifact[] homePositions;
 
+    /*
+     *Using the .dat file provided a world is created
+     *the world is a 2-D array of artifacts consisting of land, water, plants, obstacles, and homes
+     *@param s should be path of .dat file
+     */
     public static void createTerrain(String s) {
 
-        home.setNumAnts(100);
+        final int numDataLines = 4;
         String curLine;
         String rowS;
         String colS;
         String homeS;
+        String numAntS;
 
         BufferedReader br = null;
 
@@ -95,6 +103,25 @@ public class myWorld {
                         System.out.println("Third row of data file must be of format 'homes= #'");
                         throw new IOException();
                     }
+
+                } else if (curRowNumber == 3) {       // if the 3rd row is homes= #, read the data
+
+                    if (curLine.matches("numAnts=\\s\\d+")) {
+                        String[] parts = curLine.split("\\s");
+                        numAntS = parts[1];
+                        numAnts = Integer.parseInt(numAntS);
+                        System.out.println("Number of ants per home is set to: " + numAnts);
+                        home.setNumAnts(numAnts);
+
+                        if (numAnts == 0) {
+                            System.out.println("Each colony must have atleast 1 ant");
+                            throw new IOException();
+                        }
+
+                    } else {
+                        System.out.println("Third row of data file must be of format 'numAnts= #'");
+                        throw new IOException();
+                    }
                 }
                 curRowNumber++;
             }
@@ -125,13 +152,12 @@ public class myWorld {
             File fi = new File(s);
             br = new BufferedReader(new FileReader(fi));
             int curRowNumberX = 0;   // keep current count of rows
-            int homeCount = 0;      //keep count of home/hives generated
 
             while ((curLine = br.readLine()) != null) {
 
-                if (curRowNumberX > 2) { //for all the following rows read the data into the terrain
+                if (curRowNumberX > (numDataLines - 1)) { //for all the following rows read the data into the terrain
 
-                    int terrainRow = curRowNumberX - 3;     //keep a temp var that stores the current row of the terrain being read
+                    int terrainRow = curRowNumberX - numDataLines;     //keep a temp var that stores the current row of the terrain being read
                     //create an array of artifacts-- artifacts can be land, obstacle, water, plant
 
                     if (curLine.matches("([O|L|W|P])\\w+")) {  //if the row has has the right format
@@ -186,39 +212,6 @@ public class myWorld {
                 curRowNumberX++;
 
             }
-
-            //System.out.println("rows= " + row);
-            //System.out.println("cols= " + col);
-            //world[0][0].getMyType();
-            System.out.println("Generating homes...");
-            while (homeCount != homes) {
-                //randomly generate homes on the land artifacts
-                Random rand = new Random();
-
-                // nextInt is normally exclusive of the top value,
-                // so add 1 to make it inclusive
-                int randomY = rand.nextInt((row));
-                System.out.println("randomY= " + randomY);
-                int randomX = rand.nextInt((col));
-                System.out.println("randomX= " + randomX);
-                // System.out.println(world[randomX][randomY] instanceof land);
-                //System.out.println(!(world[randomX][randomY] instanceof home));
-                world[randomX][randomY].getMyType();
-
-                if (world[randomX][randomY] instanceof land && !(world[randomX][randomY] instanceof home)) {
-
-                    System.out.println("homeCount is now " + homeCount + "and the amount of set homes is" + homes);
-                    home h = new home();
-                    world[randomX][randomY] = h;
-                    homePositions[homeCount] = h;
-                    ((home) world[randomX][randomY]).setHomeNumber(homeCount); //home identification tag is 0 indexed
-                    homeCount++;
-
-                }
-
-            }
-            System.out.println("done generating homes");
-
         } catch (FileNotFoundException e) {
             System.out.println(e.getClass());
 
@@ -237,8 +230,58 @@ public class myWorld {
 
         }
 
+        worldGeneratedFlag = true;
+    }
+    /*
+     *randomly generates homes throughout the generated terrain
+     */
+    public static void GenerateHomes() {
+
+        try {
+
+            if (worldGeneratedFlag == false) {
+                System.out.println("Error: cannot generate homes, world not yet generated -- Please call myWorld.createTerrain first and provide it with the appropriate data file");
+                throw new IOException();
+            }
+
+            int homeCount = 0;      //keep count of home/hives generated
+            System.out.println("Generating homes...");
+
+            while (homeCount != homes) {
+                //randomly generate homes on the land artifacts
+                Random rand = new Random();
+
+            // nextInt is normally exclusive of the top value,
+                // so add 1 to make it inclusive
+                int randomY = rand.nextInt((row));
+                System.out.println("randomY= " + randomY);
+                int randomX = rand.nextInt((col));
+                System.out.println("randomX= " + randomX);
+                world[randomX][randomY].getMyType();
+
+                if (world[randomX][randomY] instanceof land && !(world[randomX][randomY] instanceof home)) {
+
+                    System.out.println("homeCount is now " + homeCount + "and the amount of set homes is" + homes);
+                    home h = new home();
+                    world[randomX][randomY] = h;
+                    homePositions[homeCount] = h;
+                    ((home) world[randomX][randomY]).setHomeNumber(homeCount); //home identification tag is 0 indexed
+                    homeCount++;
+
+                }
+
+            }
+            System.out.println("done generating homes");
+
+        } catch (IOException e) {
+            System.out.println(e.getClass());
+        }
+
     }
 
+    /*
+     *returns array of homes on the map
+     */
     public static Artifact[] getHomePositions() {
 
         return homePositions;
