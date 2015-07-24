@@ -107,7 +107,7 @@ public class myWorld {
                         numAntS = parts[1];
                         numAnts = Integer.parseInt(numAntS);
                         System.out.println("Number of ants per home is set to: " + numAnts);
-                        home.setNumAnts(numAnts);
+                        
 
                         if (numAnts == 0) {
                             System.out.println("Each colony must have atleast 1 ant");
@@ -256,19 +256,29 @@ public class myWorld {
                 world[randomX][randomY].getMyType();
 
                 if (world[randomX][randomY] instanceof land && !(world[randomX][randomY] instanceof home)) {
-
-                    System.out.println("homeCount is now " + homeCount + "and the amount of set homes is" + homes);
-                    home h = new home();
-                    world[randomX][randomY] = h;
-                    ((home) world[randomX][randomY]).setHomeNumber(homeCount); //home identification tag is 0 indexed
-                    homePositions[homeCount] = world[randomX][randomY];
-                    homeCount++;
-
+                    
+                    if(!(randomX+1>=col-1 || randomX-1<0 || randomY+1>=row-1 || randomY-1<0)){  //assures ants have space to leave home 
+                        System.out.println("homeCount is now " + homeCount + "and the amount of set homes is" + homes);
+                        home h = new home();
+                        world[randomX][randomY] = h;
+                        ((home) world[randomX][randomY]).setHomeNumber(homeCount); //home identification tag is 0 indexed
+                        homePositions[homeCount] = world[randomX][randomY];
+                        homeCount++;
+                    }
                 }
 
             }
             System.out.println("done generating homes");
-
+            
+            System.out.println("generating ant colonies...");
+            
+            for (int k=0;k<homePositions.length;k++){
+                
+                ((home)homePositions[k]).generateAntColony(numAnts);
+                
+            }
+            
+            System.out.println("done generating ant colonies");
         } catch (IOException e) {
             System.out.println(e.getClass());
         }
@@ -289,5 +299,32 @@ public class myWorld {
             System.out.println("position of homeNumber "+ i+ " is "+homePositions[i].getX()+" , "+homePositions[i].getY());
         }
     }
-
+    
+   public static Artifact[][] getWorld(){
+       return world;
+   }
+   
+   public static Artifact getWorldObject(int x, int y){
+       
+       
+       return world[x][y];
+   }
+   
+   public static int getAmountOfHomes(){
+       return homes;
+       
+   }
+   
+   public static int getAmountOfRows(){
+       return row;
+       
+   }
+   
+   public static int getAmountOfColumns(){
+       return col;
+   }
+   
+   public static boolean isWorldGenerated(){
+       return worldGeneratedFlag;
+   }
 }

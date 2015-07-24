@@ -175,7 +175,7 @@ class home extends Artifact {
 
     private int homeNumber;
     private static int amountOfHomes;
-    private static int amountOfAnts;
+    private static int currNumAnts;
     Map<Integer, Ant> colony = new HashMap<>();
 
     /*
@@ -183,18 +183,29 @@ class home extends Artifact {
      *Tags every ant with its colony number (0-indexed)
      *sets every ant with it's initial position at the home's position
      */
-    public void generateAntColony() {
+    public void generateAntColony(int initialAnts) {
 
-        for (int i = 0; i < amountOfAnts; i++) {
+        for (int i = 0; i < initialAnts; i++) {
             colony.put(i, new Ant());
             colony.get(i).setAntID(i);
+            colony.get(i).setPosition(this.getX(), this.getY());
+            colony.get(i).setHomeNumber(homeNumber);
+            colony.get(i).setAlive(true);
+            currNumAnts= initialAnts;
             
-
-            /*
-             colony[i].setHomeNumber(homeNumber); //tags ant with tribe identity
-             colony[i].setPosition(this.getX(), this.getY());
-             */
-        }
+            if (!(myWorld.getWorldObject(this.getX()+1, this.getY()) instanceof water) || !(myWorld.getWorldObject(this.getX()+1, this.getY()) instanceof obstacle)){
+                colony.get(i).setDirection("E");
+                
+            }else if (!(myWorld.getWorldObject(this.getX()-1, this.getY()) instanceof water) || !(myWorld.getWorldObject(this.getX()-1, this.getY()) instanceof obstacle)){
+                colony.get(i).setDirection("W");
+            
+            }else if(!(myWorld.getWorldObject(this.getX(), this.getY()+1) instanceof water) || !(myWorld.getWorldObject(this.getX(), this.getY()+1) instanceof obstacle)){
+                colony.get(i).setDirection("N");
+                
+            }else if(!((myWorld.getWorldObject(this.getX(), this.getY()-1) instanceof water) || !(myWorld.getWorldObject(this.getX(), this.getY()-1) instanceof obstacle)))
+                colony.get(i).setDirection("S");
+            
+        }       
 
     }
 
@@ -202,7 +213,7 @@ class home extends Artifact {
      *releases Ant from home 
      */
     public void releaseAnt() {
-
+        currNumAnts--;
     }
     /*
      *set's home identification number (0-indexed)
@@ -222,8 +233,6 @@ class home extends Artifact {
      *class value sets the number of ants that will live in every colony
      */
 
-    public static void setNumAnts(int a) {
-        amountOfAnts = a;
-    }
+
 
 }

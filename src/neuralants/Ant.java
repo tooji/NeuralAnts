@@ -18,6 +18,9 @@ public class Ant {
     private boolean hasFood;
     private boolean stateFindFood;
     private boolean stateFindHome;
+    private boolean Alive;
+    private String direction;
+    
 
     
     public void setAntID(int id){
@@ -40,6 +43,11 @@ public class Ant {
     public void setPosition(int x, int y) {
         xPos = x;
         yPos = y;
+        
+        if(myWorld.getWorld()[x][y] instanceof water){
+            
+        }
+        
     }
     /*
      *sets state of ant to find food mode to true, sets state of find home mode to false
@@ -89,13 +97,14 @@ public class Ant {
      */
 
     public void dropHomePheremone() {
-
+        ((land)myWorld.getWorldObject(this.getXPos(),this.getYPos())).addHomePheremoneScent(this.getHomeNumber(), 1);
     }
     /*
      *Drops Food Pheremone on ants location
      */
 
     public void dropFoodPheremone() {
+        ((land)myWorld.getWorldObject(this.getXPos(),this.getYPos())).addFoodPheremoneScent(this.getHomeNumber(), 1);
 
     }
     /*
@@ -120,10 +129,23 @@ public class Ant {
     public int getHomeNumber() {
         return homeNumber;
     }
+    
+    
+    public void setAlive(boolean DOA){
+        Alive = DOA;
+    }
+    
+    
+    public String getDirection(){
+        return direction;
+    }
+    
+    public void setDirection(String d){
+        direction = d;
+    }
     /*
      *And thinks using its state and current sensory data and decides what to do using a normal distribution
      */
-
     public void think() {
 
     }
