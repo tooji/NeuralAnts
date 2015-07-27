@@ -14,7 +14,7 @@ public class Ant {
     private int xPos;
     private int yPos;
     private int homeNumber;
-    private int antID;
+    private String antID;
     private boolean hasFood;
     private boolean stateFindFood;
     private boolean stateFindHome;
@@ -23,7 +23,7 @@ public class Ant {
     
 
     
-    public void setAntID(int id){
+    public void setAntID(String id){
         antID = id;
         
     }
@@ -147,6 +147,13 @@ public class Ant {
      *And thinks using its state and current sensory data and decides what to do using a normal distribution
      */
     public void think() {
+        
+        //get sensory information and state
+        
+        
+        //compute action
+        
+        //update myWorld.artifact[][]
 
     }
 

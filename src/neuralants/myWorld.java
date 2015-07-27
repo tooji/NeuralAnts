@@ -7,6 +7,7 @@ package neuralants;
 
 import java.io.BufferedReader;
 import java.util.Random;
+import java.util.ArrayList;
 import java.io.*;
 
 /**
@@ -22,6 +23,8 @@ public class myWorld {
     private static boolean worldGeneratedFlag;
     private static Artifact[][] world;
     private static Artifact[] homePositions;
+    private static ArrayList<Ant> onMapPool = new ArrayList<Ant>();
+    private static ArrayList<Ant> deadAntPool = new ArrayList<Ant>();
 
     /*
      *Using the .dat file provided a world is created
@@ -305,9 +308,11 @@ public class myWorld {
    }
    
    public static Artifact getWorldObject(int x, int y){
-       
-       
-       return world[x][y];
+         return world[x][y];
+   }
+   
+   public static Artifact getHome(int h){
+       return homePositions[h];
    }
    
    public static int getAmountOfHomes(){
@@ -326,5 +331,36 @@ public class myWorld {
    
    public static boolean isWorldGenerated(){
        return worldGeneratedFlag;
+   }
+   
+   public static void addToWorldPool(Ant x){
+       onMapPool.add(x);    
+   }
+   
+   /*
+   *gets returns 
+   */
+   public static int getWorldPoolSize(){
+       return onMapPool.size();
+    
+    }
+   
+   public static Ant getWorldPoolAnt(int index){
+       return onMapPool.get(index);
+       
+   }
+   
+   public static Ant getDeadAnt(int index){
+       
+       return deadAntPool.get(index);
+       
+   }
+   
+   
+   public static void KillAnt(Ant x){
+       onMapPool.remove(x);
+       x.setAlive(false);
+       deadAntPool.add(x);
+       
    }
 }

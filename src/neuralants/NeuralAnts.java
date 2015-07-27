@@ -34,46 +34,48 @@ public class NeuralAnts {
 
         myWorld.createTerrain(path);
         myWorld.GenerateHomes();
-        
+
         System.out.println("please enter the path of the sim.dat file");
         keyboard = new Scanner(System.in);
         path = keyboard.nextLine();
-        
+
         initializeSim(path);
         runSim();
     }
 
     public static void runSim() {
-        
-        for(int i=0;i<simLength;i++){
-            
-            if (i%antReleaseFactor==0){
-                
-                
-                
+
+        for (int i = 0; i < simLength; i++) {
+
+            if (i % antReleaseFactor == 0) {
+                for (int k = 0; k < myWorld.getAmountOfHomes(); k++) {
+                    ((home) myWorld.getHome(k)).releaseAnt();
+                    //need to make a pool of ants on the map and cycle through them and make them think()
+                    myWorld.addToWorldPool(((home) myWorld.getHome(k)).releaseAnt());
+
+                }
+            }
+            int currWorldPoolSize = myWorld.getWorldPoolSize();
+
+            if (currWorldPoolSize > 1) {
+
+                for (int j = 0; j < currWorldPoolSize; j++) {
+
+                    myWorld.getWorldPoolAnt(j).think();
+
+                }
+
             }
             
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
+            for (int u=0; u<antGenerationRate; u++){
+                for(int h = 0; h<myWorld.getAmountOfHomes(); u++){
+                    
+                    ((home) myWorld.getHome(u)).generateAnt();
+                    
+                }
+                
+            }
         }
-        
-        
-        
 
     }
 
@@ -145,8 +147,8 @@ public class NeuralAnts {
                         simLengthS = parts[1];
                         simLength = Integer.parseInt(simLengthS);
                         System.out.println("Number of ants per home is set to: " + simLength);
-                        
-                        if (simLength<1) {
+
+                        if (simLength < 1) {
                             System.out.println("Simulation length must be atleast 1 step");
                             throw new IOException();
                         }
@@ -176,8 +178,6 @@ public class NeuralAnts {
             }
 
         }
-        
-        
-        
+
     }
 }

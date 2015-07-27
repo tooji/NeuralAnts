@@ -6,7 +6,6 @@
 package neuralants;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.*;
 
 /**
@@ -175,8 +174,10 @@ class home extends Artifact {
 
     private int homeNumber;
     private static int amountOfHomes;
-    private static int currNumAnts;
+    private int currNumAnts;
+    private int nextAnt = 0;
     Map<Integer, Ant> colony = new HashMap<>();
+    private ArrayList<Ant> atHomePool = new ArrayList<Ant>();
 
     /*
      *Generates Ant Colony with amount of ants specified
@@ -187,33 +188,38 @@ class home extends Artifact {
 
         for (int i = 0; i < initialAnts; i++) {
             colony.put(i, new Ant());
-            colony.get(i).setAntID(i);
+
+            colony.get(i).setAntID(Integer.toString(this.getHomeNumber()) + Integer.toString(i));
+
             colony.get(i).setPosition(this.getX(), this.getY());
             colony.get(i).setHomeNumber(homeNumber);
             colony.get(i).setAlive(true);
-            currNumAnts= initialAnts;
-            
-            if (!(myWorld.getWorldObject(this.getX()+1, this.getY()) instanceof water) || !(myWorld.getWorldObject(this.getX()+1, this.getY()) instanceof obstacle)){
+            currNumAnts = initialAnts;
+            atHomePool.add(colony.get(i));
+
+            if (!(myWorld.getWorldObject(this.getX() + 1, this.getY()) instanceof water) || !(myWorld.getWorldObject(this.getX() + 1, this.getY()) instanceof obstacle)) {
                 colony.get(i).setDirection("E");
-                
-            }else if (!(myWorld.getWorldObject(this.getX()-1, this.getY()) instanceof water) || !(myWorld.getWorldObject(this.getX()-1, this.getY()) instanceof obstacle)){
+
+            } else if (!(myWorld.getWorldObject(this.getX() - 1, this.getY()) instanceof water) || !(myWorld.getWorldObject(this.getX() - 1, this.getY()) instanceof obstacle)) {
                 colony.get(i).setDirection("W");
-            
-            }else if(!(myWorld.getWorldObject(this.getX(), this.getY()+1) instanceof water) || !(myWorld.getWorldObject(this.getX(), this.getY()+1) instanceof obstacle)){
+
+            } else if (!(myWorld.getWorldObject(this.getX(), this.getY() + 1) instanceof water) || !(myWorld.getWorldObject(this.getX(), this.getY() + 1) instanceof obstacle)) {
                 colony.get(i).setDirection("N");
-                
-            }else if(!((myWorld.getWorldObject(this.getX(), this.getY()-1) instanceof water) || !(myWorld.getWorldObject(this.getX(), this.getY()-1) instanceof obstacle)))
+
+            } else if (!((myWorld.getWorldObject(this.getX(), this.getY() - 1) instanceof water) || !(myWorld.getWorldObject(this.getX(), this.getY() - 1) instanceof obstacle))) {
                 colony.get(i).setDirection("S");
-            
-        }       
+            }
+
+        }
 
     }
 
     /*
      *releases Ant from home 
      */
-    public void releaseAnt() {
+    public Ant releaseAnt() {
         currNumAnts--;
+        return atHomePool.remove(0);
     }
     /*
      *set's home identification number (0-indexed)
@@ -233,6 +239,35 @@ class home extends Artifact {
      *class value sets the number of ants that will live in every colony
      */
 
+    public int getHomeNumber() {
+        return homeNumber;
+    }
 
+    public Ant getAnt(int id) { //ant ID
+        return colony.get(id);
+    }
 
+    public void generateAnt() {
+        currNumAnts++;
+        colony.put(colony.size(), new Ant());
+
+        colony.get(colony.size()).setAntID(Integer.toString(this.getHomeNumber()) + Integer.toString(colony.size()));
+        colony.get(colony.size()).setPosition(this.getX(), this.getY());
+        colony.get(colony.size()).setHomeNumber(homeNumber);
+        colony.get(colony.size()).setAlive(true);
+
+        if (!(myWorld.getWorldObject(this.getX() + 1, this.getY()) instanceof water) || !(myWorld.getWorldObject(this.getX() + 1, this.getY()) instanceof obstacle)) {
+            colony.get(colony.size()).setDirection("E");
+
+        } else if (!(myWorld.getWorldObject(this.getX() - 1, this.getY()) instanceof water) || !(myWorld.getWorldObject(this.getX() - 1, this.getY()) instanceof obstacle)) {
+            colony.get(colony.size()).setDirection("W");
+
+        } else if (!(myWorld.getWorldObject(this.getX(), this.getY() + 1) instanceof water) || !(myWorld.getWorldObject(this.getX(), this.getY() + 1) instanceof obstacle)) {
+            colony.get(colony.size()).setDirection("N");
+
+        } else if (!((myWorld.getWorldObject(this.getX(), this.getY() - 1) instanceof water) || !(myWorld.getWorldObject(this.getX(), this.getY() - 1) instanceof obstacle))) {
+            colony.get(colony.size()).setDirection("S");
+        }
+
+    }
 }
