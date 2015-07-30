@@ -161,4 +161,8 @@ public class Ant {
     
     
      }*/
+    
+    public void pickUpFood(){
+        //if (this.xPos())
+    }
 }

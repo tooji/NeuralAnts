@@ -16,6 +16,14 @@ public class Artifact {
 
     private int xPos;
     private int yPos;
+    private static int amountOfHomes;
+    private int[] foodPheremoneNum; //amount of food pheremones for a given tribe(index) are located on this area
+    private int[] homePheremoneNum; //amount of home pheremones for a given tribe(index) are located on this area
+    private int[] foodPheremoneScent; //only those ants from the same tribe can recognize
+    private int[] homePheremoneScent; //only those ants from the same tribe can recognize
+    private int[] homeScent;    //only those ants from the same tribe can recognize
+    private int foodScent;      //All ants can recognize
+    private static ArrayList<Pheremone> Pheremones = new ArrayList<Pheremone>();
     /*
      *get's position of this artifact
      */
@@ -63,20 +71,6 @@ public class Artifact {
         }
     }
 
-}
-
-class water extends Artifact {
-
-}
-
-class land extends Artifact {
-
-    private static int amountOfHomes;
-    private int[] foodPheremoneScent; //only those ants from the same tribe can recognize
-    private int[] homePheremoneScent; //only those ants from the same tribe can recognize
-    private int[] homeScent;    //only those ants from the same tribe can recognize
-    private int foodScent;      //All ants can recognize
-
     public static void setAmountOfHomes(int i) {
         amountOfHomes = i;
     }
@@ -87,6 +81,7 @@ class land extends Artifact {
                 System.out.println("FoodPheremone Array cannot be initialized because amountOfHomes is 0/undefined/uninitialized");
                 throw new IOException();
             } else {
+                 
                 foodPheremoneScent = new int[amountOfHomes];
                 homePheremoneScent = new int[amountOfHomes];
                 homeScent = new int[amountOfHomes]; //actual home scent (different from homePheremoneScent)
@@ -103,6 +98,10 @@ class land extends Artifact {
     public void updateFoodPheremoneScent(int h) {
         foodPheremoneScent[h]++;
     }
+
+    public void setFoodPheremoneScent(int h, int value) {
+        foodPheremoneScent[h] = value;
+    }
     /*
      *Updates the home pheremone scent at this location
      *@param h is the tribe/home number of the ant
@@ -112,16 +111,28 @@ class land extends Artifact {
         homePheremoneScent[h]++;
     }
 
+    public void updateHomePheremoneScent(int h, int value) {
+        homePheremoneScent[h] = value;
+    }
+
     /*
      *Updates the home scent at this location
      *@param h is the tribe/home number of the ant
      */
     public void updateHomeScent(int h) {
-        homePheremoneScent[h]++;
+        homeScent[h]++;
+    }
+
+    public void setHomeScent(int h, int value) {
+        homeScent[h] = value;
     }
 
     public void updateFoodScent() {
         foodScent++;
+    }
+
+    public void setFoodScent(int value) {
+        foodScent = value;
     }
     /*
      *adds to the home scent at this location
@@ -138,11 +149,38 @@ class land extends Artifact {
         homePheremoneScent[h] = homePheremoneScent[h] + n;
 
     }
+
+    public void addHomeScent(int h, int n) {
+        homeScent[h] = homeScent[h] + n;
+    }
+
+    public void addFoodScent(int n) {
+        foodScent = foodScent + n;
+
+    }
+
+}
+
+class water extends Artifact {
+
+}
+
+class land extends Artifact {
+
 }
 
 class plant extends Artifact {
 
     private int amountOfFood;
+
+    public boolean hasFood() {
+        if (amountOfFood <= 0) {
+            return false;
+        } else {
+            return true;
+        }
+
+    }
 
     public void setAmountOfFood(int n) {
         amountOfFood = n;

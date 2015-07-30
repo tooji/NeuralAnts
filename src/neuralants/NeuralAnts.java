@@ -180,4 +180,10 @@ public class NeuralAnts {
         }
 
     }
+    
+    public void WriteWorldToCSV(String path){
+        
+        
+    }
+    
 }
