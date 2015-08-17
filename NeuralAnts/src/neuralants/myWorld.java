@@ -29,8 +29,8 @@ public class myWorld {
     private static Artifact[] homePositions;
     private static ArrayList<Ant> onMapPool = new ArrayList<Ant>();
     private static ArrayList<Ant> deadAntPool = new ArrayList<Ant>();
-    private static ArrayList<FoodPheromone>foodPheromonePool = new ArrayList<FoodPheromone>();
-    private static ArrayList<HomePheromone>homePheromonePool = new ArrayList<HomePheromone>();
+    private static ArrayList<FoodPheromone> foodPheromonePool = new ArrayList<FoodPheromone>();
+    private static ArrayList<HomePheromone> homePheromonePool = new ArrayList<HomePheromone>();
 
     /*
      *Using the .dat file provided a world is created
@@ -157,14 +157,14 @@ public class myWorld {
             File fi = new File(s);
             br = new BufferedReader(new FileReader(fi));
             int curRowNumberX = 0;   // keep current count of rows
+            int terrainRow = row - 1;
 
             while ((curLine = br.readLine()) != null) {
 
                 if (curRowNumberX > (numDataLines - 1)) { //for all the following rows read the data into the terrain
 
-                    int terrainRow = curRowNumberX - numDataLines;     //keep a temp var that stores the current row of the terrain being read
+                    //int terrainRow = curRowNumberX - numDataLines;     //keep a temp var that stores the current row of the terrain being read
                     //create an array of artifacts-- artifacts can be land, obstacle, water, plant
-
                     if (curLine.matches("([O|L|W|P])\\w+")) {  //if the row has has the right format
                         System.out.println("Line has right format");
                         char[] lineWorld = curLine.toCharArray();   //chop up line into character array called lineworld
@@ -221,6 +221,7 @@ public class myWorld {
                 }
 
                 curRowNumberX++;
+                terrainRow--;
 
             }
 
@@ -362,7 +363,12 @@ public class myWorld {
     }
 
     public static Artifact getWorldObject(int x, int y) {
+
+        if (x >= col || y >= row || x < 0 || y < 0) {
+            System.out.println("cannot access world object out of bounds exception");
+        }
         return world[x][y];
+
     }
 
     public static Artifact getHome(int h) {
@@ -426,12 +432,12 @@ public class myWorld {
 
         return true;
     }
-    
-    public void growFruits(){
-        for (int i =0; i<plantCount; i++){
-            ((plant)world[plantPositions[i].getX()][plantPositions[i].getY()]).GenerateOneFood();
+
+    public void growFruits() {
+        for (int i = 0; i < plantCount; i++) {
+            ((plant) world[plantPositions[i].getX()][plantPositions[i].getY()]).GenerateOneFood();
         }
-        
+
     }
 
     public boolean plantCheck() {
@@ -443,17 +449,17 @@ public class myWorld {
 
         return true;
     }
-    
-    public static void ageFoodPheromones(int i, int j){
-        myWorld.getWorldObject(i,j).ageFoodPheromones();
+
+    public static void ageFoodPheromones(int i, int j) {
+        myWorld.getWorldObject(i, j).ageFoodPheromones();
     }
-    
-    public static void ageHomePheromones(int i, int j){
-        myWorld.getWorldObject(i,j).ageHomePheromones();
+
+    public static void ageHomePheromones(int i, int j) {
+        myWorld.getWorldObject(i, j).ageHomePheromones();
     }
-    
-    public static void ageFood(int i, int j){
-        myWorld.getWorldObject(i,j).ageFood();    
+
+    public static void ageFood(int i, int j) {
+        myWorld.getWorldObject(i, j).ageFood();
     }
 
     /*
@@ -461,117 +467,114 @@ public class myWorld {
      */
     public static void disperseFoodSmells(int i, int j) {
 
-         myWorld.getWorldObject(i, j).disperseFoodPheromoneScents();
+        myWorld.getWorldObject(i, j).disperseFoodPheromoneScents();
 
     }
-    
-    
+
     public static void disperseHomeSmells(int i, int j) {
 
-       // for (int i = 0; i < col; i++) {
+        // for (int i = 0; i < col; i++) {
         //    for (int j = 0; j < row; j++) {
-                for (int p = 0; p < homes; p++) {
-                    if (getDistance(world[i][j], homePositions[p]) == 0){
-                        if (world[i][j] instanceof home) {
-                            world[i][j].addHomeScent(p,100);
-                        }
-                    } else if (getDistance(world[i][j], homePositions[p]) <= 1) {
-                        if (world[i][j] instanceof land || world[i][j] instanceof water) {
-                            for (int o = 0; o < obstacleCount; o++) {
-                                if (getDirectionOfArtifact(world[i][j], world[homePositions[p].getX()][homePositions[p].getY()])==(getDirectionOfArtifact(obstaclePositions[o], homePositions[p]))) {
-                                    if (getDistance(world[i][j], homePositions[p]) < getDistance(obstaclePositions[o], homePositions[p])) {
-                                        world[i][j].addHomeScent(p,25);
-                                    }
-                                }
+        for (int p = 0; p < homes; p++) {
+            if (getDistance(world[i][j], homePositions[p]) == 0) {
+                if (world[i][j] instanceof home) {
+                    world[i][j].addHomeScent(p, 100);
+                }
+            } else if (getDistance(world[i][j], homePositions[p]) <= 1) {
+                if (world[i][j] instanceof land || world[i][j] instanceof water) {
+                    for (int o = 0; o < obstacleCount; o++) {
+                        if (getDirectionOfArtifact(world[i][j], world[homePositions[p].getX()][homePositions[p].getY()]) == (getDirectionOfArtifact(obstaclePositions[o], homePositions[p]))) {
+                            if (getDistance(world[i][j], homePositions[p]) < getDistance(obstaclePositions[o], homePositions[p])) {
+                                world[i][j].addHomeScent(p, 25);
                             }
                         }
-                    } else if (getDistance(world[i][j], homePositions[p]) <= 2) {
-                        if (world[i][j] instanceof land || world[i][j] instanceof water) {
-                            for (int o = 0; o < obstacleCount; o++) {
-                                if (getDirectionOfArtifact(world[i][j], world[homePositions[p].getX()][homePositions[p].getY()])==(getDirectionOfArtifact(obstaclePositions[o], homePositions[p]))) {
-                                    if (getDistance(world[i][j], homePositions[p]) < getDistance(obstaclePositions[o], homePositions[p])) {
-                                        world[i][j].addHomeScent(p, 11);
-                                    }
-
-                                }
-                            }
-
-                        }
-                    } else if (getDistance(world[i][j], homePositions[p]) <= 3) {
-                        if (world[i][j] instanceof land || world[i][j] instanceof water) {
-                            for (int o = 0; o < obstacleCount; o++) {
-                                if (getDirectionOfArtifact(world[i][j], world[homePositions[p].getX()][homePositions[p].getY()])==(getDirectionOfArtifact(obstaclePositions[o], homePositions[p]))) {
-                                    if (getDistance(world[i][j], homePositions[p]) < getDistance(obstaclePositions[o], homePositions[p])) {
-                                        world[i][j].addHomeScent(p,6);
-                                    }
-
-                                }
-                            }
-
-                        }
-                    } else if (getDistance(world[i][j], homePositions[p]) <= 4) {
-                        if (world[i][j] instanceof land || world[i][j] instanceof water) {
-                            for (int o = 0; o < obstacleCount; o++) {
-                                if (getDirectionOfArtifact(world[i][j], world[homePositions[p].getX()][homePositions[p].getY()])==(getDirectionOfArtifact(obstaclePositions[o], homePositions[p]))) {
-                                    if (getDistance(world[i][j], homePositions[p]) < getDistance(obstaclePositions[o], homePositions[p])) {
-                                        world[i][j].addHomeScent(p,4);
-                                    }
-
-                                }
-                            }
-
-                        }
-                    } else if (getDistance(world[i][j], homePositions[p]) <= 4) {
-                        if (world[i][j] instanceof land || world[i][j] instanceof water) {
-                            for (int o = 0; o < obstacleCount; o++) {
-                                if (getDirectionOfArtifact(world[i][j], world[homePositions[p].getX()][homePositions[p].getY()])==(getDirectionOfArtifact(obstaclePositions[o], homePositions[p]))) {
-                                    if (getDistance(world[i][j], homePositions[p]) < getDistance(obstaclePositions[o], homePositions[p])) {
-                                        world[i][j].addHomeScent(p,3);
-                                    }
-
-                                }
-                            }
-
-                        }
-                    } else if (getDistance(world[i][j], homePositions[p]) <= 5) {
-                        if (world[i][j] instanceof land || world[i][j] instanceof water) {
-                            for (int o = 0; o < obstacleCount; o++) {
-                                if (getDirectionOfArtifact(world[i][j], world[homePositions[p].getX()][homePositions[p].getY()])==(getDirectionOfArtifact(obstaclePositions[o], homePositions[p]))) {
-                                    if (getDistance(world[i][j], homePositions[p]) < getDistance(obstaclePositions[o], homePositions[p])) {
-                                        world[i][j].addHomeScent(p,2);
-                                    }
-
-                                }
-                            }
-
-                        }
-                    } else if (getDistance(world[i][j], homePositions[p]) <= 6) {
-                        if (world[i][j] instanceof land || world[i][j] instanceof water) {
-                            for (int o = 0; o < obstacleCount; o++) {
-                                if (getDirectionOfArtifact(world[i][j], world[homePositions[p].getX()][homePositions[p].getY()])==(getDirectionOfArtifact(obstaclePositions[o], homePositions[p]))) {
-                                    if (getDistance(world[i][j], homePositions[p]) < getDistance(obstaclePositions[o], homePositions[p])) {
-                                        world[i][j].addHomeScent(p,1);
-                                    }
-
-                                }
+                    }
+                }
+            } else if (getDistance(world[i][j], homePositions[p]) <= 2) {
+                if (world[i][j] instanceof land || world[i][j] instanceof water) {
+                    for (int o = 0; o < obstacleCount; o++) {
+                        if (getDirectionOfArtifact(world[i][j], world[homePositions[p].getX()][homePositions[p].getY()]) == (getDirectionOfArtifact(obstaclePositions[o], homePositions[p]))) {
+                            if (getDistance(world[i][j], homePositions[p]) < getDistance(obstaclePositions[o], homePositions[p])) {
+                                world[i][j].addHomeScent(p, 11);
                             }
 
                         }
                     }
 
                 }
+            } else if (getDistance(world[i][j], homePositions[p]) <= 3) {
+                if (world[i][j] instanceof land || world[i][j] instanceof water) {
+                    for (int o = 0; o < obstacleCount; o++) {
+                        if (getDirectionOfArtifact(world[i][j], world[homePositions[p].getX()][homePositions[p].getY()]) == (getDirectionOfArtifact(obstaclePositions[o], homePositions[p]))) {
+                            if (getDistance(world[i][j], homePositions[p]) < getDistance(obstaclePositions[o], homePositions[p])) {
+                                world[i][j].addHomeScent(p, 6);
+                            }
+
+                        }
+                    }
+
+                }
+            } else if (getDistance(world[i][j], homePositions[p]) <= 4) {
+                if (world[i][j] instanceof land || world[i][j] instanceof water) {
+                    for (int o = 0; o < obstacleCount; o++) {
+                        if (getDirectionOfArtifact(world[i][j], world[homePositions[p].getX()][homePositions[p].getY()]) == (getDirectionOfArtifact(obstaclePositions[o], homePositions[p]))) {
+                            if (getDistance(world[i][j], homePositions[p]) < getDistance(obstaclePositions[o], homePositions[p])) {
+                                world[i][j].addHomeScent(p, 4);
+                            }
+
+                        }
+                    }
+
+                }
+            } else if (getDistance(world[i][j], homePositions[p]) <= 4) {
+                if (world[i][j] instanceof land || world[i][j] instanceof water) {
+                    for (int o = 0; o < obstacleCount; o++) {
+                        if (getDirectionOfArtifact(world[i][j], world[homePositions[p].getX()][homePositions[p].getY()]) == (getDirectionOfArtifact(obstaclePositions[o], homePositions[p]))) {
+                            if (getDistance(world[i][j], homePositions[p]) < getDistance(obstaclePositions[o], homePositions[p])) {
+                                world[i][j].addHomeScent(p, 3);
+                            }
+
+                        }
+                    }
+
+                }
+            } else if (getDistance(world[i][j], homePositions[p]) <= 5) {
+                if (world[i][j] instanceof land || world[i][j] instanceof water) {
+                    for (int o = 0; o < obstacleCount; o++) {
+                        if (getDirectionOfArtifact(world[i][j], world[homePositions[p].getX()][homePositions[p].getY()]) == (getDirectionOfArtifact(obstaclePositions[o], homePositions[p]))) {
+                            if (getDistance(world[i][j], homePositions[p]) < getDistance(obstaclePositions[o], homePositions[p])) {
+                                world[i][j].addHomeScent(p, 2);
+                            }
+
+                        }
+                    }
+
+                }
+            } else if (getDistance(world[i][j], homePositions[p]) <= 6) {
+                if (world[i][j] instanceof land || world[i][j] instanceof water) {
+                    for (int o = 0; o < obstacleCount; o++) {
+                        if (getDirectionOfArtifact(world[i][j], world[homePositions[p].getX()][homePositions[p].getY()]) == (getDirectionOfArtifact(obstaclePositions[o], homePositions[p]))) {
+                            if (getDistance(world[i][j], homePositions[p]) < getDistance(obstaclePositions[o], homePositions[p])) {
+                                world[i][j].addHomeScent(p, 1);
+                            }
+
+                        }
+                    }
+
+                }
+            }
+
+        }
 
          //   }
-
-       // }
-
+        // }
     }
-    
-    public static void disperseFoodPheromoneScent(int i, int j){
+
+    public static void disperseFoodPheromoneScent(int i, int j) {
         myWorld.getWorldObject(i, j).disperseFoodPheromoneScents();
     }
-    
-    public static void disperseHomePheromoneScent(int i, int j){
+
+    public static void disperseHomePheromoneScent(int i, int j) {
         myWorld.getWorldObject(i, j).disperseHomePheromoneScents();
     }
 
@@ -594,38 +597,43 @@ public class myWorld {
         int yDist = getYDistance(origin, dest);
         int xDist = getXDistance(origin, dest);
         /*
-        if (yDist == 0 && xDist == 0) {
-            return "SameObject";
-        } else if (yDist == 0 && xDist <= 0) {
-            return "W";
-        } else if (yDist == 0 && xDist >= 0) {
-            return "E";
-        } else if (yDist >= 0 && xDist == 0) {
-            return "N";
-        } else if (yDist <= 0 && xDist == 0) {
-            return "S";
-        } else if (yDist <= 0 && xDist <= 0) {
-            return "SW";
-        } else if (yDist <= 0 && xDist >= 0) {
-            return "SE";
-        } else if (yDist >= 0 && xDist <= 0) {
-            return "NW";
-        } else if (yDist >= 0 && xDist >= 0) {
-            return "NE";
-        } else {
-            return "NULL";
-        }
-                */
-        
-        
-       return Math.atan2(xDist, yDist);
+         if (yDist == 0 && xDist == 0) {
+         return "SameObject";
+         } else if (yDist == 0 && xDist <= 0) {
+         return "W";
+         } else if (yDist == 0 && xDist >= 0) {
+         return "E";
+         } else if (yDist >= 0 && xDist == 0) {
+         return "N";
+         } else if (yDist <= 0 && xDist == 0) {
+         return "S";
+         } else if (yDist <= 0 && xDist <= 0) {
+         return "SW";
+         } else if (yDist <= 0 && xDist >= 0) {
+         return "SE";
+         } else if (yDist >= 0 && xDist <= 0) {
+         return "NW";
+         } else if (yDist >= 0 && xDist >= 0) {
+         return "NE";
+         } else {
+         return "NULL";
+         }
+         */
+
+        return Math.atan2(xDist, yDist);
     }
-    
-    public static Artifact getObstacle(int n){
+
+    public static Artifact getObstacle(int n) {
         return obstaclePositions[n];
     }
-    
-    public static int getNumObstacles(){
+
+    public static int getNumObstacles() {
         return obstacleCount;
+    } 
+    
+    public static void enterHome(Ant x, int h){
+        onMapPool.remove(x);
+        
     }
+            
 }

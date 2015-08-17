@@ -6,6 +6,7 @@
 package neuralants;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -24,12 +25,27 @@ public class Ant {
     private boolean hasFood;
     private boolean stateFindFood;
     private boolean stateFindHome;
-    private boolean Alive;
+    private boolean alive;
     private String direction;
+    private static ArrayList<Food> FoodIHave = new ArrayList<Food>();
     private Artifact[] mySurroundings = new Artifact[3];
     private double[] myMovementScores = new double[9];
-    private double[] myDropPScores = new double[3];
-    Map<String, Integer> scores = new HashMap<>();
+    //Pheromone Scores
+    private double dropHPScore;
+    private double dropFPScore;
+    private double dropNPScore;
+    //change state scores
+    private double changeStateScore;
+    private double keepStateScore;
+    //pick up food or drop food score
+    private double pickUpFoodScore;
+    private double dropFoodScore;
+    private double dontPickUpScore;
+
+    public Ant() {
+        this.hasFood = false;
+        this.alive = true;
+    }
 
     public void setAntID(String id) {
         antID = id;
@@ -57,13 +73,18 @@ public class Ant {
      * @param y sets y-position of ant
      */
     public void setPosition(int x, int y) {
-        xPos = x;
-        yPos = y;
-
-        if (myWorld.getWorld()[x][y] instanceof water) {
-
+        if(myWorld.getWorldObject(x, y) instanceof water){
+            this.killAnt(); //remove from worldPool, add to dead ant pool
+        }else if(myWorld.getWorldObject(x, y) instanceof obstacle){
+            //do nothing
+        }else if (myWorld.getWorldObject(x,y) instanceof home){
+            //remove from worldPool, add to homePool, change pos
+        }else if (x>= myWorld.getAmountOfColumns() || y>=myWorld.getAmountOfRows()){
+            System.out.println("Cannot move ant there, out of bounds exception");
+        }else{
+            this.xPos = x;
+            this.yPos = y;
         }
-
     }
 
     /**
@@ -158,7 +179,7 @@ public class Ant {
      * @param DOA true if alive false if dead
      */
     public void setAlive(boolean DOA) {
-        Alive = DOA;
+        alive = DOA;
     }
 
     /**
@@ -192,18 +213,15 @@ public class Ant {
 
         //get sensory information and state
         this.getSurroundings();
-        //this.assignMoveScores();
+        //get scores for each action
+        this.setActionScores();
+        this.computeActions();
 
-        //this.assignDropPheromoneScores();
-        //this.assignChangeStateScores();
-        //this.assignPickUpScore();
         //compute action(s)
         //update myWorld.artifact[][] (done within simulation method NeuralAnts.java)
-        
         //compute actions
         //move
         //drop pheremones -->compute drop score, if it matches place where ant will move then do it
-        
     }
 
     /*private static Artifact[] getSurroundingSmells(){
@@ -213,56 +231,56 @@ public class Ant {
     public void pickUpFood() {
         //if (this.xPos())
     }
-    
-    public void dropFood(){
-        
+
+    public void dropFood() {
+
     }
-    
-    public void move(Artifact x){
+
+    public void move(Artifact x) {
         this.xPos = x.getX();
         this.yPos = x.getY();
     }
 
     private void getSurroundings() {
         if (direction.matches("N")) {
-            mySurroundings[1] = myWorld.getWorldObject(this.getXPos() - 1, this.getYPos() + 1);
-            mySurroundings[2] = myWorld.getWorldObject(this.getXPos(), this.getYPos() + 1);
-            mySurroundings[3] = myWorld.getWorldObject(this.getXPos() + 1, this.getYPos() + 1);
-
-        } else if (direction.matches("E")) {
-            mySurroundings[1] = myWorld.getWorldObject(this.getXPos() + 1, this.getYPos() + 1);
-            mySurroundings[2] = myWorld.getWorldObject(this.getXPos() + 1, this.getYPos());
-            mySurroundings[3] = myWorld.getWorldObject(this.getXPos() + 1, this.getYPos() - 1);
-
-        } else if (direction.matches("W")) {
-            mySurroundings[1] = myWorld.getWorldObject(this.getXPos() - 1, this.getYPos() - 1);
-            mySurroundings[2] = myWorld.getWorldObject(this.getXPos() - 1, this.getYPos());
-            mySurroundings[3] = myWorld.getWorldObject(this.getXPos() - 1, this.getYPos() + 1);
-
-        } else if (direction.matches("S")) {
-            mySurroundings[1] = myWorld.getWorldObject(this.getXPos() + 1, this.getYPos() - 1);
-            mySurroundings[2] = myWorld.getWorldObject(this.getXPos(), this.getYPos() - 1);
-            mySurroundings[3] = myWorld.getWorldObject(this.getXPos() - 1, this.getYPos() - 1);
-
-        } else if (direction.matches("NE")) {
+            mySurroundings[0] = myWorld.getWorldObject(this.getXPos() - 1, this.getYPos() + 1);
             mySurroundings[1] = myWorld.getWorldObject(this.getXPos(), this.getYPos() + 1);
             mySurroundings[2] = myWorld.getWorldObject(this.getXPos() + 1, this.getYPos() + 1);
-            mySurroundings[3] = myWorld.getWorldObject(this.getXPos() + 1, this.getYPos());
 
-        } else if (direction.matches("NW")) {
-            mySurroundings[1] = myWorld.getWorldObject(this.getXPos(), this.getYPos() + 1);
-            mySurroundings[2] = myWorld.getWorldObject(this.getXPos() - 1, this.getYPos() + 1);
-            mySurroundings[3] = myWorld.getWorldObject(this.getXPos() - 1, this.getYPos());
-
-        } else if (direction.matches("SE")) {
+        } else if (direction.matches("E")) {
+            mySurroundings[0] = myWorld.getWorldObject(this.getXPos() + 1, this.getYPos() + 1);
             mySurroundings[1] = myWorld.getWorldObject(this.getXPos() + 1, this.getYPos());
             mySurroundings[2] = myWorld.getWorldObject(this.getXPos() + 1, this.getYPos() - 1);
-            mySurroundings[3] = myWorld.getWorldObject(this.getXPos(), this.getYPos() - 1);
+
+        } else if (direction.matches("W")) {
+            mySurroundings[0] = myWorld.getWorldObject(this.getXPos() - 1, this.getYPos() - 1);
+            mySurroundings[1] = myWorld.getWorldObject(this.getXPos() - 1, this.getYPos());
+            mySurroundings[2] = myWorld.getWorldObject(this.getXPos() - 1, this.getYPos() + 1);
+
+        } else if (direction.matches("S")) {
+            mySurroundings[0] = myWorld.getWorldObject(this.getXPos() + 1, this.getYPos() - 1);
+            mySurroundings[1] = myWorld.getWorldObject(this.getXPos(), this.getYPos() - 1);
+            mySurroundings[2] = myWorld.getWorldObject(this.getXPos() - 1, this.getYPos() - 1);
+
+        } else if (direction.matches("NE")) {
+            mySurroundings[0] = myWorld.getWorldObject(this.getXPos(), this.getYPos() + 1);
+            mySurroundings[1] = myWorld.getWorldObject(this.getXPos() + 1, this.getYPos() + 1);
+            mySurroundings[2] = myWorld.getWorldObject(this.getXPos() + 1, this.getYPos());
+
+        } else if (direction.matches("NW")) {
+            mySurroundings[0] = myWorld.getWorldObject(this.getXPos(), this.getYPos() + 1);
+            mySurroundings[1] = myWorld.getWorldObject(this.getXPos() - 1, this.getYPos() + 1);
+            mySurroundings[2] = myWorld.getWorldObject(this.getXPos() - 1, this.getYPos());
+
+        } else if (direction.matches("SE")) {
+            mySurroundings[0] = myWorld.getWorldObject(this.getXPos() + 1, this.getYPos());
+            mySurroundings[1] = myWorld.getWorldObject(this.getXPos() + 1, this.getYPos() - 1);
+            mySurroundings[2] = myWorld.getWorldObject(this.getXPos(), this.getYPos() - 1);
 
         } else if (direction.matches("SW")) {
-            mySurroundings[1] = myWorld.getWorldObject(this.getXPos() - 1, this.getYPos());
-            mySurroundings[2] = myWorld.getWorldObject(this.getXPos() - 1, this.getYPos() - 1);
-            mySurroundings[3] = myWorld.getWorldObject(this.getXPos(), this.getYPos() - 1);
+            mySurroundings[0] = myWorld.getWorldObject(this.getXPos() - 1, this.getYPos());
+            mySurroundings[1] = myWorld.getWorldObject(this.getXPos() - 1, this.getYPos() - 1);
+            mySurroundings[2] = myWorld.getWorldObject(this.getXPos(), this.getYPos() - 1);
 
         } else {
             System.out.println("Error gathering direction in getSurroundings() method");
@@ -303,19 +321,21 @@ public class Ant {
                 Random rand = new Random();
                 int randFactor = rand.nextInt(randomnessFactor + 1);
                 if (i < mySurroundings.length) {
-                    myMovementScores[i] = 2*mySurroundings[i].getFoodScent() + mySurroundings[i].getFoodPheromoneScent(this.homeNumber) + randFactor;
+                    myMovementScores[i] = 2 * mySurroundings[i].getFoodScent() + mySurroundings[i].getFoodPheromoneScent(this.homeNumber) + randFactor;
+                } else {
+                    myMovementScores[i] = randFactor;
                 }
-                else myMovementScores[i] = randFactor;
             }
 
         } else if (this.getState().matches("FindHome")) {
-            for(int i =0; i< myMovementScores.length; i++){
+            for (int i = 0; i < myMovementScores.length; i++) {
                 Random rand = new Random();
-                int randFactor = rand.nextInt(randomnessFactor+1);
-                if (i<mySurroundings.length){
-                    myMovementScores[i]= 2*mySurroundings[i].getHomePheromoneScent(this.homeNumber) + mySurroundings[i].getHomeScent(this.homeNumber) + randFactor;
+                int randFactor = rand.nextInt(randomnessFactor + 1);
+                if (i < mySurroundings.length) {
+                    myMovementScores[i] = 2 * mySurroundings[i].getHomePheromoneScent(this.homeNumber) + mySurroundings[i].getHomeScent(this.homeNumber) + randFactor;
+                } else {
+                    myMovementScores[i] = randFactor;
                 }
-                else myMovementScores[i] = randFactor;
             }
 
         } else {
@@ -326,54 +346,234 @@ public class Ant {
     }
 
     private void setDropPheromoneScores() {
-        
-        if (this.getState().matches("FindFood")) {
-            for (int i = 0; i<mySurroundings.length; i++){
-                for (int j = 0 ; j< myDropPScores.length; j++){
-                    Random rand = new Random();
-                    if (j == 0){
-                        int randFactor = rand.nextInt(randomnessFactor+1);
-                        
-                        
-                    }else if (j == 1){
-                        int randFactor = rand.nextInt(randomnessFactor+1);
-
-                        
-                    }else if (j == 2){
-                         int randFactor = rand.nextInt(randomnessFactor+1);
-                        
-                    }else{
-                        
-                    }
-                    
-                    
-                }
+        double temp;
+        double highestScore = 0;
+        int highestIndex = 0;
+        Random rand = new Random();
+        for (int i = 0; i < myMovementScores.length; i++) {
+            temp = myMovementScores[i];
+            if (highestScore < myMovementScores[i]) {
+                highestScore = myMovementScores[i];
+                highestIndex = i;
             }
-            
-            
-            
-            
-
-        } else if (this.getState().matches("FindHome")) {
-           
-
-        } else {
-            System.out.println("Ant state invalid");
-
         }
 
-        
+        if (this.getState().matches("FindFood")) {
+            if (highestIndex < 3) {
+
+                int randFactor = rand.nextInt(randomnessFactor + 1);
+
+                dropFPScore = 2 * mySurroundings[highestIndex].getFoodScent() + mySurroundings[highestIndex].getFoodPheromoneScent(this.homeNumber) + randFactor;
+                randFactor = rand.nextInt(randomnessFactor + 1);
+                dropHPScore = randFactor;
+                randFactor = rand.nextInt(randomnessFactor + 1);
+                dropNPScore = randFactor;
+            } else {
+                int randFactor = rand.nextInt(randomnessFactor + 1);
+                dropNPScore = 100 + randFactor;
+                randFactor = rand.nextInt(randomnessFactor + 1);
+                dropHPScore = randFactor;
+                randFactor = rand.nextInt(randomnessFactor + 1);
+                dropFPScore = randFactor;
+
+            }
+
+        } else if (this.getState().matches("FindHome")) {
+            if (highestIndex < 3) {
+
+                int randFactor = rand.nextInt(randomnessFactor + 1);
+                dropHPScore = 2 * mySurroundings[highestIndex].getHomeScent(this.homeNumber) + mySurroundings[highestIndex].getHomePheromoneScent(this.homeNumber) + randFactor;
+                randFactor = rand.nextInt(randomnessFactor + 1);
+                dropFPScore = randFactor;
+                randFactor = rand.nextInt(randomnessFactor + 1);
+                dropNPScore = randFactor;
+            } else {
+                int randFactor = rand.nextInt(randomnessFactor + 1);
+                dropNPScore = 100 + randFactor;
+                randFactor = rand.nextInt(randomnessFactor + 1);
+                dropHPScore = randFactor;
+                randFactor = rand.nextInt(randomnessFactor + 1);
+                dropFPScore = randFactor;
+            }
+
+        } else {
+            System.out.println("Ant state invalid cannot compute dropP score");
+
+        }
 
     }
 
     private void setChangeStateScore() {
+        Random rand = new Random();
+        if ((this.getState().matches("FindFood") && !(this.hasFood)) || (this.getState().matches("FindHome") && (this.hasFood))) {
+
+            int randFactor = rand.nextInt(randomnessFactor + 1);
+            keepStateScore = 50 + randFactor;
+            randFactor = rand.nextInt(randomnessFactor + 1);
+            changeStateScore = randFactor;
+
+        } else if ((this.getState().matches("FindFood") && this.hasFood) || (this.getState().matches("FindHome") && !(this.hasFood))) {
+            int randFactor = rand.nextInt(randomnessFactor + 1);
+            changeStateScore = 50 + randFactor;
+            randFactor = rand.nextInt(randomnessFactor + 1);
+            keepStateScore = randFactor;
+        } else {
+            System.out.println("something went wrong could not set change state score");
+        }
 
     }
 
     private void setPickUpFoodScore() {
 
+        double temp;
+        double highestScore = 0;
+        int highestIndex = 0;
+        Random rand = new Random();
+        for (int i = 0; i < myMovementScores.length; i++) {
+            temp = myMovementScores[i];
+            if (highestScore < myMovementScores[i]) {
+                highestScore = myMovementScores[i];
+                highestIndex = i;
+            }
+        }
+
+        if (highestIndex < mySurroundings.length) {
+            int randFactor = rand.nextInt(randomnessFactor + 1);
+            if (mySurroundings[highestIndex].getFoodScent() >= 100 && this.getState().matches("FindFood")) {
+                pickUpFoodScore = 100 + randFactor;
+                randFactor = rand.nextInt(randomnessFactor + 1);
+                dropFoodScore = randFactor;
+
+            } else if (mySurroundings[highestIndex].getHomeScent(this.homeNumber) >= 100 && this.getState().matches("FindHome")) {
+                randFactor = rand.nextInt(randomnessFactor + 1);
+                dropFoodScore = 100 + randFactor;
+                randFactor = rand.nextInt(randomnessFactor + 1);
+                pickUpFoodScore = randFactor;
+                randFactor = rand.nextInt(randomnessFactor + 1);
+                dontPickUpScore = randFactor;
+
+            } else {
+                randFactor = rand.nextInt(randomnessFactor + 1);
+                dontPickUpScore = 100 + randFactor;
+                randFactor = rand.nextInt(randomnessFactor + 1);
+                dropFoodScore = randFactor;
+                randFactor = rand.nextInt(randomnessFactor + 1);
+                pickUpFoodScore = randFactor;
+
+            }
+
+        } else {
+            int randFactor = rand.nextInt(randomnessFactor + 1);
+            dontPickUpScore = 100 + randFactor;
+            randFactor = rand.nextInt(randomnessFactor + 1);
+            dropFoodScore = randFactor;
+            randFactor = rand.nextInt(randomnessFactor + 1);
+            pickUpFoodScore = randFactor;
+
+        }
+
+    }
+
+    private void setActionScores() {
+        this.setMoveScores();
+        this.setDropPheromoneScores();
+        this.setChangeStateScore();
+        this.setPickUpFoodScore();
+
+    }
+
+    private void computeActions() {
+        
+        moveFunction();
+        dropPheromoneFunction();
+        stateChangeFunction();
+        pickUpFoodFunction();
+
+        
+        
+
+    }
+
+    private void moveFunction() {
+        double temp;
+        double highestScore = 0;
+        int highestIndex = 0;
+        Random rand = new Random();
+        for (int i = 0; i < myMovementScores.length; i++) {
+            temp = myMovementScores[i];
+            if (highestScore < myMovementScores[i]) {
+                highestScore = myMovementScores[i];
+                highestIndex = i;
+            }
+        }
+        
+        
+        int prevX = this.xPos;
+        int prevY = this.yPos;
+        if (highestIndex >= 0 && highestIndex <= 2) {
+
+            this.setPosition(mySurroundings[highestIndex].getX(), mySurroundings[highestIndex].getY());
+
+        } else {
+            
+            int randomX = rand.nextInt(3) - 1;
+            int randomY = rand.nextInt(3) - 1;
+            this.setPosition(this.getXPos() + randomX, this.getYPos() + randomY);
+
+        }
+
+        if ((this.yPos - prevY) > 0) {
+            this.setDirection("N");
+            if ((this.xPos - prevX) > 0) {
+                this.setDirection("NE");
+            } else if ((this.xPos - prevX) < 0) {
+                this.setDirection("NW");
+            }
+        } else if ((this.yPos - prevY) < 0) {
+            this.setDirection("S");
+            if (this.xPos - prevX > 0) {
+                this.setDirection("SE");
+            } else if ((this.xPos - prevX) < 0) {
+                this.setDirection("SW");
+            }
+        } else if ((this.yPos - prevY) == 0) {
+            if ((this.xPos - prevX) > 0) {
+                this.setDirection("E");
+            } else if ((this.xPos - prevX) < 0) {
+                this.setDirection("W");
+            }
+        }
+
     }
     
+    private void dropPheromoneFunction(){
+        if (dropNPScore >= dropFPScore && dropNPScore >= dropHPScore) {
+
+        } else if (dropFPScore >= dropNPScore && dropFPScore >= dropHPScore) {
+            this.dropFoodPheromone();
+        } else if (dropHPScore >= dropFPScore && dropHPScore >= dropNPScore) {
+            this.dropHomePheromone();
+        }
+    }
     
+    private void stateChangeFunction(){
+        if (keepStateScore >= changeStateScore) {
+
+        } else if (changeStateScore > keepStateScore) {
+            this.changeState();
+        }
+    }
+    
+    private void pickUpFoodFunction(){
+        
+    }
+    
+    private void killAnt(){
+        myWorld.KillAnt(this);    
+    }
+    
+    private void enterHome(){
+        
+    }
 
 }
