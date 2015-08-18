@@ -21,6 +21,7 @@ package neuralants;
     public void setHomeNumber(int h);
     public int getHomeNumber();
     public int getCurrentSmellPower();
+    public double sigmoid(double x);
     
     
     

@@ -26,28 +26,32 @@ public class Artifact {
     private Map<Integer, HomePheromone> homePheromones = new HashMap<>();
     private Map<Integer, FoodPheromone> foodPheromones = new HashMap<>();
     private Map<Integer, Food> foodList = new HashMap<>();
+
+    public Artifact() {
+        
+    }
     
 
     /*
      *get's position of this artifact
      */
     public void setPosition(int x, int y) {
-        xPos = x;
-        yPos = y;
+        this.xPos = x;
+        this.yPos = y;
     }
     /*
      *get's the x-position of this artifact
      */
 
     public int getX() {
-        return xPos;
+        return this.xPos;
     }
     /*
      *get's the y-position of this artifact
      */
 
     public int getY() {
-        return yPos;
+        return this.yPos;
     }
     /*
      *print's the x and y coordinates of this artifact to std.out
@@ -132,6 +136,10 @@ public class Artifact {
     public void setHomeScent(int h, int value) {
         homeScent[h] = value;
     }
+    
+    public void setHomePheromoneScent(int h, int value) {
+        homeScent[h] = value;
+    }
 
     public void updateFoodScent() {
         foodScent++;
@@ -184,6 +192,10 @@ public class Artifact {
 
     }
     
+    public void addFood(Food food){
+        foodList.put(foodList.size(), food);
+        foodList.get(foodList.size()-1).setPos(this.getX(), this.getY());
+    }
     public void addFood(){
         foodList.put(foodList.size(), new Food());
         foodList.get(foodList.size()-1).setPos(this.getX(), this.getY());
@@ -280,6 +292,12 @@ public class Artifact {
         return homeScent[h];
     }
     
+    public void pickUpFirstFood(Ant x){
+        if(foodList.get(foodList.size()) != null){
+            x.addToFoodIHave(this.foodList.remove(foodList.size()));
+        }
+    }
+    
 }
 
 class water extends Artifact {
@@ -312,6 +330,7 @@ class home extends Artifact {
     private int homeNumber;
     private int currNumAnts;
     private int nextAnt = 0;
+    private int foodCollectedScore;
     Map<Integer, Ant> colony = new HashMap<>();
     private ArrayList<Ant> atHomePool = new ArrayList<Ant>();
 
@@ -406,6 +425,8 @@ class home extends Artifact {
         colony.get(colony.size() - 1).setPosition(this.getX(), this.getY());
         colony.get(colony.size() - 1).setHomeNumber(homeNumber);
         colony.get(colony.size() - 1).setAlive(true);
+        colony.get(colony.size()-1).setRandomnessFactor(NeuralAnts.getRandomnessFactor());
+        atHomePool.add(colony.get(colony.size()-1));
 
         if (!(myWorld.getWorldObject(this.getX() + 1, this.getY()) instanceof water) || !(myWorld.getWorldObject(this.getX() + 1, this.getY()) instanceof obstacle)) {
             colony.get(colony.size() - 1).setDirection("E");
@@ -420,5 +441,9 @@ class home extends Artifact {
             colony.get(colony.size() - 1).setDirection("S");
         }
 
+    }
+    
+    public void collectFood(){
+        this.foodCollectedScore++;
     }
 }

@@ -631,9 +631,9 @@ public class myWorld {
         return obstacleCount;
     } 
     
-    public static void enterHome(Ant x, int h){
-        onMapPool.remove(x);
+    public static void makeWorldThink(){
         
     }
+   
             
 }

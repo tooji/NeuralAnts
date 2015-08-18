@@ -48,7 +48,7 @@ public class NeuralAnts {
      *
      **/
     public static void runSim() {
-        
+        //disperseWorldSmells();
         for (int col = 0; col < myWorld.getAmountOfColumns(); col++) {
                         for (int row = 0; row < myWorld.getAmountOfRows(); row++) {
                             myWorld.disperseFoodSmells(col, row);
@@ -60,6 +60,7 @@ public class NeuralAnts {
         
         for (int i = 0; i < simLength; i++) {//simulation runs for specified number of steps
            //release specified amount of ants from every home every step 
+            //releaseAnts();
             for (int ar = 0; ar<antReleaseFactor ; ar++) {
                 for (int k = 0; k < myWorld.getAmountOfHomes(); k++) {
                     
@@ -68,9 +69,11 @@ public class NeuralAnts {
                     
                 }
             }
+            
+            //
             int currWorldPoolSize = myWorld.getWorldPoolSize();
             
-            /*if (currWorldPoolSize > 1) {
+            if (currWorldPoolSize > 1) {
                 
                 for (int j = 0; j < currWorldPoolSize; j++) {//all ants in the current world pool think
                     
@@ -80,13 +83,13 @@ public class NeuralAnts {
                     for (int col = 0; col <myWorld.getAmountOfColumns();col++){
                         for (int row = 0; row<myWorld.getAmountOfRows();row++){
                             for(int h=0; h<myWorld.getAmountOfHomes();h++){
-                                 myWorld.getWorldObject.setFoodPheromoneScent(h, 0);
-                                 myWorld.getWorldObject.setHomePheromoneScent(h, 0);
-                                 myWorld.getWorldObject.setFoodScent(0);
+                                 myWorld.getWorldObject(col,row).setFoodPheromoneScent(h, 0);
+                                 myWorld.getWorldObject(col, row).setHomePheromoneScent(h, 0);
+                                 myWorld.getWorldObject(col, row).setFoodScent(0);
                             }
                         }
                     }   
-                    //new scents are now calculated
+                    //new scents are now calculated disperseWorldSmells()
                     for (int col = 0; col < myWorld.getAmountOfColumns(); col++) {
                         for (int row = 0; row < myWorld.getAmountOfRows(); row++) {
                             myWorld.disperseFoodPheromoneScent(col, row);
@@ -99,8 +102,9 @@ public class NeuralAnts {
                     
                 }
                 
-            }*/
+            }
             
+            //generateAnts();
             for (int u = 0; u < antGenerationRate; u++) {   //new ants are generated at every home specified by antGenerationRate
                 for (int h = 0; h < myWorld.getAmountOfHomes(); u++) {
                     
@@ -110,6 +114,7 @@ public class NeuralAnts {
                 
             }
             
+            //agePheremones
             for (int col = 0; col < myWorld.getAmountOfColumns(); col++) {
                         for (int row = 0; row < myWorld.getAmountOfRows(); row++) {
                             myWorld.ageFoodPheromones(col, row);

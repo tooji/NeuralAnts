@@ -21,13 +21,14 @@ public class Ant {
     private int xPos;
     private int yPos;
     private int homeNumber;
+    private int foodCollectedSCore;
     private String antID;
     private boolean hasFood;
     private boolean stateFindFood;
     private boolean stateFindHome;
     private boolean alive;
     private String direction;
-    private static ArrayList<Food> FoodIHave = new ArrayList<Food>();
+    private static ArrayList<Food> foodIHave = new ArrayList<Food>();
     private Artifact[] mySurroundings = new Artifact[3];
     private double[] myMovementScores = new double[9];
     //Pheromone Scores
@@ -78,7 +79,9 @@ public class Ant {
         }else if(myWorld.getWorldObject(x, y) instanceof obstacle){
             //do nothing
         }else if (myWorld.getWorldObject(x,y) instanceof home){
-            //remove from worldPool, add to homePool, change pos
+            
+            this.xPos = x;
+            this.yPos = y;
         }else if (x>= myWorld.getAmountOfColumns() || y>=myWorld.getAmountOfRows()){
             System.out.println("Cannot move ant there, out of bounds exception");
         }else{
@@ -215,13 +218,9 @@ public class Ant {
         this.getSurroundings();
         //get scores for each action
         this.setActionScores();
+        //carry out action based on best score(probability)
         this.computeActions();
 
-        //compute action(s)
-        //update myWorld.artifact[][] (done within simulation method NeuralAnts.java)
-        //compute actions
-        //move
-        //drop pheremones -->compute drop score, if it matches place where ant will move then do it
     }
 
     /*private static Artifact[] getSurroundingSmells(){
@@ -229,11 +228,26 @@ public class Ant {
     
      }*/
     public void pickUpFood() {
-        //if (this.xPos())
+        if(foodIHave.isEmpty()){
+            myWorld.getWorldObject(this.xPos, this.yPos).pickUpFirstFood(this);
+        }
     }
 
     public void dropFood() {
-
+        if(!foodIHave.isEmpty()){
+            if (myWorld.getWorldObject(this.xPos,this.yPos) instanceof land){
+                if (myWorld.getWorldObject(this.xPos,this.yPos) instanceof home){
+                    if(((home)(myWorld.getWorldObject(this.xPos,this.yPos))).getHomeNumber() == this.getHomeNumber()){
+                        foodIHave.remove(foodIHave.size());
+                        this.foodCollectedSCore++;
+                        ((home)myWorld.getWorldObject(this.xPos,this.yPos)).collectFood();
+                        
+                    }
+                }else if (!(myWorld.getWorldObject(this.xPos,this.yPos) instanceof home)){
+                    myWorld.getWorldObject(this.xPos,this.yPos).addFood(foodIHave.remove(foodIHave.size()));
+                }
+            }
+        }
     }
 
     public void move(Artifact x) {
@@ -565,15 +579,25 @@ public class Ant {
     }
     
     private void pickUpFoodFunction(){
-        
+         
+    
+        if(dontPickUpScore >= pickUpFoodScore && dontPickUpScore >= dropFoodScore){
+            
+        }else if(pickUpFoodScore >= dontPickUpScore && pickUpFoodScore >= dropFoodScore){
+            this.pickUpFood();
+        }else if (dropFoodScore >= dontPickUpScore && dropFoodScore >= dontPickUpScore){
+            this.dropFood();
+        }
     }
     
     private void killAnt(){
         myWorld.KillAnt(this);    
     }
     
-    private void enterHome(){
-        
+    public void addToFoodIHave(Food food){
+        if(foodIHave.isEmpty()){
+            foodIHave.add(food);
+        }
     }
 
 }

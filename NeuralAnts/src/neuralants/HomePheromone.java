@@ -11,8 +11,20 @@ public class HomePheromone implements Pheromone {
     private int myHomeNumber;
     private int myX;
     private int myY;
-    private double myLifeSpan =100;
+    private double myLifeSpan;
     private int mySmellPower;
+    private double decayRatePrevX;
+    private final double stepRate = 0.005;
+
+    public HomePheromone() {
+        this.myLifeSpan = 100;
+        this.decayRatePrevX = 0;
+    }
+    
+    @Override
+    public double sigmoid(double age){
+     return age*(1/(1+Math.exp(5-(age/10))));
+    }
     
     @Override
     public void setPos(int x, int y) {
@@ -32,13 +44,22 @@ public class HomePheromone implements Pheromone {
 
     @Override
     public void agePheromone() {
-        myLifeSpan--;
+        if (this.myLifeSpan > 0){
+        this.myLifeSpan--;
+        }else {
+            
+        }
     }
 
     @Override
     public void disperseScent(int i, int j) {
      double SmellFactor;
-        if (myWorld.getDistance(myWorld.getWorldObject(i, j), myWorld.getWorldObject(this.getX(), this.getY())) >= 0) {
+     
+        if (this.myLifeSpan == 0){
+            SmellFactor =0;
+        }else SmellFactor = sigmoid(this.myLifeSpan);
+        
+        if (myWorld.getDistance(myWorld.getWorldObject(i, j), myWorld.getWorldObject(this.getX(), this.getY())) > 0) {
             if (myWorld.getWorldObject(i, j) instanceof water || myWorld.getWorldObject(i, j) instanceof land) {
                 for (int n = 0; n < myWorld.getNumObstacles(); n++) {
                     if (!(myWorld.getDirectionOfArtifact(myWorld.getWorldObject(i, j), myWorld.getWorldObject(this.getX(), this.getY())) != myWorld.getDirectionOfArtifact(myWorld.getWorldObject(i, j), myWorld.getObstacle(n)))) {
@@ -49,12 +70,14 @@ public class HomePheromone implements Pheromone {
                 }
 
             }
-        } else if (myWorld.getDistance(myWorld.getWorldObject(i, j), myWorld.getWorldObject(this.getX(), this.getY())) == 0) {
-            SmellFactor = 1;
-            myWorld.getWorldObject(i, j).addHomePheromoneScent(this.getHomeNumber(), SmellFactor * this.getCurrentLifeSpan());
+        } else if (myWorld.getDistance(myWorld.getWorldObject(i, j), myWorld.getWorldObject(this.getX(), this.getY())) == 0 && this.myLifeSpan >=0) {
+            
+            myWorld.getWorldObject(i, j).addHomePheromoneScent(this.getHomeNumber(),100);
 
-        } else {
-            System.out.println("unable to disperse scent, distance makes no sense");
+        } else if(this.myLifeSpan == 0 && myWorld.getDistance(myWorld.getWorldObject(i, j), myWorld.getWorldObject(this.getX(), this.getY())) == 0 ){
+            myWorld.getWorldObject(i, j).addHomePheromoneScent(this.getHomeNumber(),0);
+        } else{
+            System.out.println("distance makes no sense cannot disperse scent");
         }
         
         //this.agePheromone();
