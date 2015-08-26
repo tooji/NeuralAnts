@@ -9,9 +9,13 @@ public class FoodPheromone implements Pheromone {
 
     private int myX;
     private int myY;
-    private double myLifeSpan = 100;
+    private double myLifeSpan;
     private int mySmellPower;
     private int myHomeNumber;
+    
+    public FoodPheromone(){
+        myLifeSpan= 100;
+    }
 
     @Override
     public double sigmoid(double age) {
@@ -36,12 +40,12 @@ public class FoodPheromone implements Pheromone {
 
     @Override
     public void agePheromone() {
-        if (this.myLifeSpan > 0){
-        this.myLifeSpan--;
-        }else {
-            
+        if (this.myLifeSpan > 0) {
+            this.myLifeSpan--;
+        } else {
+
         }
-        
+
     }
 
     @Override
@@ -53,14 +57,23 @@ public class FoodPheromone implements Pheromone {
             SmellFactor = sigmoid(this.myLifeSpan);
         }
 
+        boolean addScent = false;
+
         if (myWorld.getDistance(myWorld.getWorldObject(i, j), myWorld.getWorldObject(this.getX(), this.getY())) > 0) {
             if (myWorld.getWorldObject(i, j) instanceof water || myWorld.getWorldObject(i, j) instanceof land) {
+                addScent = true;
                 for (int n = 0; n < myWorld.getNumObstacles(); n++) {
-                    if (!(myWorld.getDirectionOfArtifact(myWorld.getWorldObject(i, j), myWorld.getWorldObject(this.getX(), this.getY())) != myWorld.getDirectionOfArtifact(myWorld.getWorldObject(i, j), myWorld.getObstacle(n)))) {
-                        SmellFactor = 1 / (int) Math.sqrt(myWorld.getDistance(myWorld.getWorldObject(i, j), myWorld.getWorldObject(this.getX(), this.getY())));
-                        myWorld.getWorldObject(i, j).addFoodPheromoneScent(this.getHomeNumber(), SmellFactor);
-                    } else {
-                    }
+                    if ((myWorld.getDirectionOfArtifact(myWorld.getWorldObject(i, j), myWorld.getWorldObject(this.getX(), this.getY())) == myWorld.getDirectionOfArtifact(myWorld.getWorldObject(i, j), myWorld.getObstacle(n)))) {
+                        if (myWorld.getDistance(myWorld.getWorldObject(i, j), myWorld.getWorldObject(this.getX(), this.getY())) > myWorld.getDistance(myWorld.getObstacle(n), myWorld.getWorldObject(this.getX(), this.getY()))) {
+                            addScent = false;
+                        }
+                    } 
+                }
+                if (addScent == true) {
+                    SmellFactor = SmellFactor / (int) Math.pow((myWorld.getDistance(myWorld.getWorldObject(i, j), myWorld.getWorldObject(this.getX(), this.getY()))+1) , 2);
+                    myWorld.getWorldObject(i, j).addFoodPheromoneScent(this.getHomeNumber(), SmellFactor);
+                    //System.out.println("just added "+ SmellFactor+"to pos "+i+" , "+j+"homeNumber"+this.getHomeNumber()+" smell is now " +myWorld.getWorldObject(i,j).getFoodPheromoneScent(this.getHomeNumber()));
+                    addScent = false;
                 }
 
             }
