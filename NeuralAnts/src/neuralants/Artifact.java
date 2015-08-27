@@ -248,6 +248,8 @@ public class Artifact {
         foodList.get(foodList.size() - 1).setPos(this.getX(), this.getY());
     }
 
+    
+
     public FoodPheromone getFoodPheromone(int i) {
         return foodPheromones.get(i);
     }
@@ -610,8 +612,8 @@ class home extends Artifact {
     public void collectFood() {
         this.foodCollectedScore++;
     }
-    
-    public int getHomePoolSize(){
+
+    public int getHomePoolSize() {
         return this.atHomePool.size();
     }
 

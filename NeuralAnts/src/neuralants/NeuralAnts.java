@@ -30,6 +30,13 @@ public class NeuralAnts {
     private static int antReleaseFactor; //after how many steps ants are released from every home, 1 is every step(fastest), 2 is every other step...etc
     private static int randomnessFactor;
     private static int simLength;
+    private static int releaseAntsEvery;
+    private static int foodGenerationRate;
+    private static int generateFoodEvery;
+    private static int trials;
+    private static boolean randomlyGenerateHomes;
+    private static int generateAntEvery;
+    private static String initialAntDir;
 
     /**
      * @param args the command line arguments
@@ -61,13 +68,16 @@ public class NeuralAnts {
      *
      */
     public static void runSim(String s) {
-        //disperseWorldSmells();
-        //generate food
-        //intialize plant positions
-        initializePlantPositions();
-        //initialize obstacle positions
-        initializeObstacletPositions();
-        myWorld.generateFood(5);//generates 5 food at each plant
+        if (randomlyGenerateHomes == true) {
+            myWorld.generateHomes();
+        } else {
+            //intialize plant positions
+            initializePlantPositions();
+            //initialize obstacle positions
+            initializeObstacletPositions();
+        }
+
+        myWorld.generateFood(foodGenerationRate);//generates 5 food at each plant
         System.out.println("dispersing initial smells");
         for (int col = 0; col < myWorld.getAmountOfColumns(); col++) {
             for (int row = 0; row < myWorld.getAmountOfRows(); row++) {
@@ -77,10 +87,17 @@ public class NeuralAnts {
                 myWorld.disperseHomeSmells(col, row);
             }
         }
-
-        myWorld.generateAntColonies("N");
+        
+        if(initialAntDir == null){
+            myWorld.generateAntColonies();
+        }else{
+            myWorld.generateAntColonies(initialAntDir);
+        }
+        
 
         for (int i = 0; i < simLength; i++) {//simulation runs for specified number of steps
+            System.out.println("SimStep" + i + "/" + simLength);
+            
             if (i % 20 == 0) {
                 for (int p = 0; p < myWorld.getAmountOfHomes(); p++) {
                     worldSnapShot(i, p, s);
@@ -90,28 +107,40 @@ public class NeuralAnts {
 
             //release specified amount of ants from every home every step 
             //releaseAnts();
-            System.out.println("--releasing ants--simStep " + i + "/" + simLength);
-            for (int ar = 0; ar < antReleaseFactor; ar++) {
-                for (int k = 0; k < myWorld.getAmountOfHomes(); k++) {
-                    if (((home) myWorld.getHome(k)).getHomePoolSize() > 0) {
-                        //need to make a pool of ants on the map and cycle through them and make them think()
-                        myWorld.addToWorldPool(((home) myWorld.getHome(k)).releaseAnt());   //removes ant from the home's pool and adds it to the current world pool
+          
+            if (i % releaseAntsEvery == 0) {
+              //  System.out.println("--releasing ants--simStep " + i + "/" + simLength);
+                for (int ar = 0; ar < antReleaseFactor; ar++) {
+                    for (int k = 0; k < myWorld.getAmountOfHomes(); k++) {
+                        if (((home) myWorld.getHome(k)).getHomePoolSize() > 0) {
+                            //need to make a pool of ants on the map and cycle through them and make them think()
+                            myWorld.addToWorldPool(((home) myWorld.getHome(k)).releaseAnt());   //removes ant from the home's pool and adds it to the current world pool
+                        }
                     }
                 }
             }
-
             //
             myWorld.makeWorldThink(i, s);
 
             //generateAnts();
             //System.out.println("--generating ants--");
-            for (int u = 0; u < antGenerationRate; u++) {   //new ants are generated at every home specified by antGenerationRate
-                for (int h = 0; h < myWorld.getAmountOfHomes(); h++) {
-                    //System.out.println("h is "+ h);
-                    ((home) myWorld.getHome(h)).generateAnt("N");
+            if (i % generateAntEvery == 0) {
+                for (int u = 0; u < antGenerationRate; u++) {   //new ants are generated at every home specified by antGenerationRate
+                    for (int h = 0; h < myWorld.getAmountOfHomes(); h++) {
+                        //System.out.println("h is "+ h);
+                        if (initialAntDir == null) {
+                            ((home) myWorld.getHome(h)).generateAnt();
+                        } else {
+                            ((home) myWorld.getHome(h)).generateAnt(initialAntDir);
+                        }
+
+                    }
 
                 }
+            }
 
+            if (i % generateFoodEvery == 0) {
+                myWorld.generateFood(foodGenerationRate);
             }
 
             //agePheremones
@@ -120,7 +149,7 @@ public class NeuralAnts {
                 for (int row = 0; row < myWorld.getAmountOfRows(); row++) {
                     myWorld.ageFoodPheromones(col, row);
                     myWorld.ageHomePheromones(col, row);
-                    myWorld.ageFoodPheromones(col, row);
+                    myWorld.ageFood(col, row);
 
                 }
             }
@@ -180,70 +209,129 @@ public class NeuralAnts {
             while ((curLine = br.readLine()) != null) {
                 System.out.println(curLine);
 
-                if (curRowNumber == 0) {
-                    if (curLine.matches("antGenerationRate=\\s\\d+")) {    //if the first line is antGenerationRate= #, read the data
+                if (curLine.matches("antGenerationRate=\\s\\d+")) {    //if the first line is antGenerationRate= #, read the data
 
-                        String[] parts = curLine.split("\\s");
-                        antGenerationRateS = parts[1];
-                        antGenerationRate = Integer.parseInt(antGenerationRateS);
-                        System.out.println("Ant generation rate is: " + antGenerationRate + "");
+                    String[] parts = curLine.split("\\s");
+                    antGenerationRateS = parts[1];
+                    antGenerationRate = Integer.parseInt(antGenerationRateS);
+                    System.out.println("Ant generation rate is: " + antGenerationRate + "");
 
-                        if (antGenerationRate < 0) {
-                            System.out.println("Ant generation rate must be at least 0");
-                            throw new IOException();
-                        }
-                    } else {
-                        System.out.println("First row of data file must be of format 'antGenerationRate= #'");
+                    if (antGenerationRate < 0) {
+                        System.out.println("Ant generation rate must be at least 0");
                         throw new IOException();
                     }
-                } else if (curRowNumber == 1) {     //if the second line is antReleaseFactor= # read the data
+                } else if (curLine.matches("antReleaseFactor=\\s\\d+")) {
 
-                    if (curLine.matches("antReleaseFactor=\\s\\d+")) {
+                    String[] parts = curLine.split("\\s");
+                    antReleaseFactorS = parts[1];
+                    antReleaseFactor = Integer.parseInt(antReleaseFactorS);
+                    System.out.println("Ant release factor set to " + antReleaseFactor);
 
-                        String[] parts = curLine.split("\\s");
-                        antReleaseFactorS = parts[1];
-                        antReleaseFactor = Integer.parseInt(antReleaseFactorS);
-                        System.out.println("Ant release factor set to " + antReleaseFactor);
-
-                        if (antReleaseFactor < 0) {
-                            System.out.println("antReleaseFactor must be atleast 0 or greater");
-                            throw new IOException();
-                        }
-                    } else {
-                        System.out.println("Second row of data file must be of format 'antReleaseFactor #'");
+                    if (antReleaseFactor < 0) {
+                        System.out.println("antReleaseFactor must be atleast 0 or greater");
                         throw new IOException();
                     }
-                } else if (curRowNumber == 2) {       // if the 3rd row is directionWind= s,e,n,w, se,sw,ne or nw, read the data
+                } else if (curLine.matches("randomnessFactor=\\s\\d+")) {
+                    String[] parts = curLine.split("\\s");
+                    randomnessFactorS = parts[1];
+                    randomnessFactor = Integer.parseInt(randomnessFactorS);
+                    System.out.println("randomnessFactor set to " + randomnessFactor);
 
-                    if (curLine.matches("randomnessFactor=\\s\\d+")) {
-                        String[] parts = curLine.split("\\s");
-                        randomnessFactorS = parts[1];
-                        randomnessFactor = Integer.parseInt(randomnessFactorS);
-                        System.out.println("randomnessFactor set to " + randomnessFactor);
-
-                    } else {
-                        System.out.println("Third row of data file must be of format 'randomnessFactor= #'");
+                    if (randomnessFactor < 0) {
+                        System.out.println("randomeness factor must be atleast 0");
                         throw new IOException();
                     }
 
-                } else if (curRowNumber == 3) {       // if the 4th row is simLength= #, read the data
+                } else if (curLine.matches("simLength=\\s\\d+")) {
+                    String[] parts = curLine.split("\\s");
+                    simLengthS = parts[1];
+                    simLength = Integer.parseInt(simLengthS);
+                    System.out.println("sim length set to: " + simLength);
 
-                    if (curLine.matches("simLength=\\s\\d+")) {
-                        String[] parts = curLine.split("\\s");
-                        simLengthS = parts[1];
-                        simLength = Integer.parseInt(simLengthS);
-                        System.out.println("Number of ants per home is set to: " + simLength);
-
-                        if (simLength < 1) {
-                            System.out.println("Simulation length must be atleast 1 step");
-                            throw new IOException();
-                        }
-
-                    } else {
-                        System.out.println("Third row of data file must be of format 'simLength= #'");
+                    if (simLength < 1) {
+                        System.out.println("Simulation length must be atleast 1 step");
                         throw new IOException();
                     }
+
+                } else if (curLine.matches("releaseAntsEvery=\\s\\d+")) {
+                    String[] parts = curLine.split("\\s");
+                    String t = parts[1];
+                    releaseAntsEvery = Integer.parseInt(t);
+                    System.out.println("ants will release every " + releaseAntsEvery + " step(s)");
+
+                    if (releaseAntsEvery < 1) {
+                        System.out.println("release ant every x must be at least 1 ");
+                        throw new IOException();
+                    }
+
+                } else if (curLine.matches("foodGenerationRate=\\s\\d+")) {
+                    String[] parts = curLine.split("\\s");
+                    String t = parts[1];
+                    foodGenerationRate = Integer.parseInt(t);
+                    System.out.println(foodGenerationRate + "fruit will generate");
+
+                    if (foodGenerationRate < 0) {
+                        System.out.println("fruitGenerationRate must be greater than or equal to 0");
+                        throw new IOException();
+                    }
+
+                } else if (curLine.matches("generateFoodEvery=\\s\\d+")) {
+                    String[] parts = curLine.split("\\s");
+                    String t = parts[1];
+                    generateFoodEvery = Integer.parseInt(t);
+                    System.out.println("fruit will generate every " + generateFoodEvery + " step(s)");
+
+                    if (generateFoodEvery < 1) {
+                        System.out.println("generate fruit every must be greater than or equal to 1 ");
+                        throw new IOException();
+                    }
+
+                } else if (curLine.matches("trials=\\s\\d+")) {
+                    String[] parts = curLine.split("\\s");
+                    String t = parts[1];
+                    trials = Integer.parseInt(t);
+                    System.out.println("the simulation will run " + trials + " trials");
+
+                    if (trials < 1) {
+                        System.out.println("Sim must run at least 1 trial ");
+                        throw new IOException();
+                    }
+
+                } else if (curLine.matches("randomlyGenerateHomes=\\s\\d+")) {
+                    String[] parts = curLine.split("\\s");
+                    String t = parts[1];
+                    int temp = Integer.parseInt(t);
+                    
+                    if ((temp != 1 && temp !=0 )) {
+                        System.out.println("Randomly Generate Homes must be either 0 or 1 ");
+                        throw new IOException();
+                    } else if (temp == 1) {
+                        randomlyGenerateHomes = true;
+                        System.out.println("randomlyGenerateHomes set to TRUE");
+                    } else if (temp == 0) {
+                        randomlyGenerateHomes = false;
+                        System.out.println("randomlyGenerateHomes set to FALSE");
+                    }
+
+                } else if (curLine.matches("generateAntEvery=\\s\\d+")) {
+                    String[] parts = curLine.split("\\s");
+                    String t = parts[1];
+                    generateAntEvery = Integer.parseInt(t);
+                    System.out.println("the simulation will generate an ant every" + generateAntEvery + " trials");
+
+                    if (generateAntEvery < 1) {
+                        System.out.println("generateAntEvery must be at least 1 ");
+                        throw new IOException();
+                    }
+
+                } else if (curLine.matches("initialAntDir=\\s(N|S|E|W|NE|SE|NW|SW)")) {
+                    String[] parts = curLine.split("\\s");
+                    String t = parts[1];
+                    initialAntDir = t;
+                    System.out.println("the initial direction of every ant will be" + initialAntDir);
+
                 }
+
                 curRowNumber++;
             }
 

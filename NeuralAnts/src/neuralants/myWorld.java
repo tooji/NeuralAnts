@@ -275,7 +275,7 @@ public class myWorld {
      *randomly generates homes throughout the generated terrain
      */
 
-    public static void GenerateHomes() {
+    public static void generateHomes() {
 
         try {
             //System.out.println("world[10][10] is " );

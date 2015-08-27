@@ -41,7 +41,10 @@ public class Food {
     }
 
     public void ageFood() {
-        myLifeSpan--;
+        if (myLifeSpan > 0){
+            myLifeSpan--;
+        }
+        
 
     }
 

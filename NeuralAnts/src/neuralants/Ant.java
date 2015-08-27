@@ -31,7 +31,7 @@ public class Ant {
     private String direction;
     private static ArrayList<Food> foodIHave = new ArrayList<Food>();
     private Artifact[] mySurroundings = new Artifact[3];
-    private double[] myMovementScores = new double[4];
+    private double[] myMovementScores = new double[9];
     //Pheromone Scores
     private double dropHPScore;
     private double dropFPScore;
@@ -43,6 +43,7 @@ public class Ant {
     private double pickUpFoodScore;
     private double dropFoodScore;
     private double dontPickUpScore;
+    private int currHighestIndex;
 
     public Ant() {
         this.hasFood = false;
@@ -90,15 +91,15 @@ public class Ant {
 
             this.xPos = x;
             this.yPos = y;
-        } else if (x >= myWorld.getAmountOfColumns() || y >= myWorld.getAmountOfRows() || y<0 || x<0) {
+        } else if (x >= myWorld.getAmountOfColumns() || y >= myWorld.getAmountOfRows() || y < 0 || x < 0) {
             System.out.println("Cannot move ant there, out of bounds exception");
         } else {
             this.xPos = x;
             this.yPos = y;
-            if (myWorld.getWorldObject(this.xPos, this.yPos) instanceof plant){
+            if (myWorld.getWorldObject(this.xPos, this.yPos) instanceof plant) {
                 System.out.println("look ma I got maself to a plant!");
             }
-            
+
         }
     }
 
@@ -141,7 +142,7 @@ public class Ant {
      * Drops Home Pheromone on ants location
      */
     public void dropHomePheromone() {
-        if (myWorld.getWorldObject(xPos, yPos) instanceof land ||myWorld.getWorldObject(xPos, yPos) instanceof plant ||myWorld.getWorldObject(xPos, yPos) instanceof home) {
+        if (myWorld.getWorldObject(xPos, yPos) instanceof land || myWorld.getWorldObject(xPos, yPos) instanceof plant || myWorld.getWorldObject(xPos, yPos) instanceof home) {
             myWorld.getWorldObject(xPos, yPos).addHomePheromone(homeNumber);
 
         }
@@ -151,7 +152,7 @@ public class Ant {
      * Drops Food Pheromone on ants location
      */
     public void dropFoodPheromone() {
-        if (myWorld.getWorldObject(xPos, yPos) instanceof land ||myWorld.getWorldObject(xPos, yPos) instanceof plant ||myWorld.getWorldObject(xPos, yPos) instanceof home) {
+        if (myWorld.getWorldObject(xPos, yPos) instanceof land || myWorld.getWorldObject(xPos, yPos) instanceof plant || myWorld.getWorldObject(xPos, yPos) instanceof home) {
             myWorld.getWorldObject(xPos, yPos).addFoodPheromone(homeNumber);
         }
 
@@ -237,29 +238,29 @@ public class Ant {
     public void pickUpFood() {
         if (foodIHave.isEmpty()) {
             myWorld.getWorldObject(this.xPos, this.yPos).pickUpFirstFood(this);
-            
+
         }
     }
 
     public void dropFood() {
         if (!foodIHave.isEmpty()) {
             System.out.println("hey ma im droppin some food");
-            if (myWorld.getWorldObject(this.xPos, this.yPos) instanceof land) {
-                if (myWorld.getWorldObject(this.xPos, this.yPos) instanceof home) {
-                    if (((home) (myWorld.getWorldObject(this.xPos, this.yPos))).getHomeNumber() == this.getHomeNumber()) {
-                        foodIHave.remove(foodIHave.size());
-                        this.hasFood = false;
-                        this.foodCollectedSCore++;
-                        System.out.println("ant ID " + this.antID + "just brought some food back home his score is now " + this.foodCollectedSCore);
-                        ((home) myWorld.getWorldObject(this.xPos, this.yPos)).collectFood();
-                        System.out.println("the total food brought back to this home is now " + ((home) myWorld.getWorldObject(this.xPos, this.yPos)).getFoodColleectedSCore());
 
-                    }
-                } else if (!(myWorld.getWorldObject(this.xPos, this.yPos) instanceof home)) {
+            if (myWorld.getWorldObject(this.xPos, this.yPos) instanceof home) {
+                if (((home) (myWorld.getWorldObject(this.xPos, this.yPos))).getHomeNumber() == this.getHomeNumber()) {
+                    foodIHave.remove(foodIHave.size()-1);
                     this.hasFood = false;
-                    myWorld.getWorldObject(this.xPos, this.yPos).addFood(foodIHave.remove(foodIHave.size()));
-                }
+                    this.foodCollectedSCore++;
+                    System.out.println("ant ID " + this.antID + "just brought some food back home his score is now " + this.foodCollectedSCore);
+                    ((home) myWorld.getWorldObject(this.xPos, this.yPos)).collectFood();
+                    System.out.println("the total food brought back to this home is now " + ((home) myWorld.getWorldObject(this.xPos, this.yPos)).getFoodColleectedSCore());
+
+                } else System.out.println("this aint yo house bruh!");
+            } else if (!(myWorld.getWorldObject(this.xPos, this.yPos) instanceof home)) {
+                this.hasFood = false;
+                myWorld.getWorldObject(this.xPos, this.yPos).addFood(foodIHave.remove(foodIHave.size()-1));
             }
+
         }
     }
 
@@ -345,9 +346,9 @@ public class Ant {
                 int randFactor = rand.nextInt(randomnessFactor + 1);
                 if (i < mySurroundings.length) {
                     myMovementScores[i] = 30 * myWorld.getWorldObject(mySurroundings[i].getX(), mySurroundings[i].getY()).getFoodScent() + myWorld.getWorldObject(mySurroundings[i].getX(), mySurroundings[i].getY()).getFoodPheromoneScent(this.homeNumber) + randFactor;
-                    
+
                 } else {
-                    randFactor = rand.nextInt(randomnessFactor +1);
+                    randFactor = rand.nextInt(randomnessFactor + 1);
                     myMovementScores[i] = randFactor;
                 }
             }
@@ -357,7 +358,7 @@ public class Ant {
                 Random rand = new Random();
                 int randFactor = rand.nextInt(randomnessFactor + 1);
                 if (i < mySurroundings.length) {
-                    myMovementScores[i] =  myWorld.getWorldObject(mySurroundings[i].getX(), mySurroundings[i].getY()).getHomePheromoneScent(this.homeNumber) + 30* myWorld.getWorldObject(mySurroundings[i].getX(), mySurroundings[i].getY()).getHomeScent(this.homeNumber) + randFactor;
+                    myMovementScores[i] = myWorld.getWorldObject(mySurroundings[i].getX(), mySurroundings[i].getY()).getHomePheromoneScent(this.homeNumber) + 30 * myWorld.getWorldObject(mySurroundings[i].getX(), mySurroundings[i].getY()).getHomeScent(this.homeNumber) + randFactor;
                 } else {
                     randFactor = rand.nextInt(randomnessFactor + 1);
                     myMovementScores[i] = randFactor;
@@ -374,28 +375,28 @@ public class Ant {
     private void setDropPheromoneScores() {
         double temp;
         double highestScore = 0;
-        int highestIndex = 0;
+
         Random rand = new Random();
         for (int i = 0; i < myMovementScores.length; i++) {
             temp = myMovementScores[i];
             if (highestScore < myMovementScores[i]) {
                 highestScore = myMovementScores[i];
-                highestIndex = i;
+                currHighestIndex = i;
             }
         }
 
         if (this.getState().matches("FindFood")) {
-            if (highestIndex < 3) {
+            if (currHighestIndex < 3) {
 
                 int randFactor = rand.nextInt(randomnessFactor + 1);
 
-                dropFPScore = 2 * myWorld.getWorldObject(mySurroundings[highestIndex].getX(), mySurroundings[highestIndex].getY()).getFoodScent() + myWorld.getWorldObject(mySurroundings[highestIndex].getX(), mySurroundings[highestIndex].getY()).getFoodPheromoneScent(this.homeNumber) + randFactor;
+                dropHPScore = 2 * myWorld.getWorldObject(mySurroundings[currHighestIndex].getX(), mySurroundings[currHighestIndex].getY()).getFoodScent() + myWorld.getWorldObject(mySurroundings[currHighestIndex].getX(), mySurroundings[currHighestIndex].getY()).getFoodPheromoneScent(this.homeNumber) + randFactor;
                 randFactor = rand.nextInt(randomnessFactor + 1);
-                dropHPScore = randFactor;
+                dropFPScore = randFactor;
                 randFactor = rand.nextInt(randomnessFactor + 1);
                 dropNPScore = randFactor;
-                if (myWorld.getWorldObject(mySurroundings[highestIndex].getX(), mySurroundings[highestIndex].getY()).getFoodScent() == 0) {
-                    dropNPScore += 100;
+                if (myWorld.getWorldObject(mySurroundings[currHighestIndex].getX(), mySurroundings[currHighestIndex].getY()).getFoodScent() == 0) {
+                    dropNPScore += 50;
                 }
             } else {
                 int randFactor = rand.nextInt(randomnessFactor + 1);
@@ -404,21 +405,20 @@ public class Ant {
                 dropHPScore = randFactor;
                 randFactor = rand.nextInt(randomnessFactor + 1);
                 dropFPScore = randFactor;
-                
 
             }
 
         } else if (this.getState().matches("FindHome")) {
-            if (highestIndex < 3) {
+            if (currHighestIndex < 3) {
 
                 int randFactor = rand.nextInt(randomnessFactor + 1);
-                dropHPScore = 2 * myWorld.getWorldObject(mySurroundings[highestIndex].getX(), mySurroundings[highestIndex].getY()).getHomeScent(this.homeNumber) + myWorld.getWorldObject(mySurroundings[highestIndex].getX(), mySurroundings[highestIndex].getY()).getHomePheromoneScent(this.homeNumber) + randFactor;
+                dropFPScore = 2 * myWorld.getWorldObject(mySurroundings[currHighestIndex].getX(), mySurroundings[currHighestIndex].getY()).getHomeScent(this.homeNumber) + myWorld.getWorldObject(mySurroundings[currHighestIndex].getX(), mySurroundings[currHighestIndex].getY()).getHomePheromoneScent(this.homeNumber) + randFactor;
                 randFactor = rand.nextInt(randomnessFactor + 1);
-                dropFPScore = randFactor;
+                 dropHPScore = randFactor;
                 randFactor = rand.nextInt(randomnessFactor + 1);
                 dropNPScore = randFactor;
-                
-                if (myWorld.getWorldObject(mySurroundings[highestIndex].getX(), mySurroundings[highestIndex].getY()).getFoodScent() == 0) {
+
+                if (myWorld.getWorldObject(mySurroundings[currHighestIndex].getX(), mySurroundings[currHighestIndex].getY()).getHomeScent(this.homeNumber) == 0) {
                     dropNPScore += 50;
                 }
             } else {
@@ -438,6 +438,7 @@ public class Ant {
     }
 
     private void setChangeStateScore() {
+
         Random rand = new Random();
         if ((this.getState().matches("FindFood") && !(this.hasFood)) || (this.getState().matches("FindHome") && (this.hasFood))) {
 
@@ -461,26 +462,26 @@ public class Ant {
 
         double temp;
         double highestScore = 0;
-        int highestIndex = 0;
+
         Random rand = new Random();
         for (int i = 0; i < myMovementScores.length; i++) {
             temp = myMovementScores[i];
             if (highestScore < myMovementScores[i]) {
                 highestScore = myMovementScores[i];
-                highestIndex = i;
+                currHighestIndex = i;
             }
         }
 
-        if (highestIndex < mySurroundings.length) {
+        if (currHighestIndex < mySurroundings.length) {
             int randFactor = rand.nextInt(randomnessFactor + 1);
-            if (myWorld.getWorldObject(mySurroundings[highestIndex].getX(), mySurroundings[highestIndex].getY()).getFoodScent() >= 100 && this.getState().matches("FindFood")) {
-                 pickUpFoodScore = 100 + randFactor;
+            if (myWorld.getWorldObject(mySurroundings[currHighestIndex].getX(), mySurroundings[currHighestIndex].getY()).getFoodScent() >= 100 && this.getState().matches("FindFood")) {
+                pickUpFoodScore = 100 + randFactor;
                 randFactor = rand.nextInt(randomnessFactor + 1);
                 dropFoodScore = randFactor;
                 randFactor = rand.nextInt(randomnessFactor + 1);
                 dontPickUpScore = randFactor;
 
-            } else if (myWorld.getWorldObject(mySurroundings[highestIndex].getX(), mySurroundings[highestIndex].getY()).getHomeScent(this.homeNumber) >= 100 && this.getState().matches("FindHome")) {
+            } else if (myWorld.getWorldObject(mySurroundings[currHighestIndex].getX(), mySurroundings[currHighestIndex].getY()).getHomeScent(this.homeNumber) >= 100 && this.getState().matches("FindHome")) {
                 randFactor = rand.nextInt(randomnessFactor + 1);
                 dropFoodScore = 100 + randFactor;
                 randFactor = rand.nextInt(randomnessFactor + 1);
@@ -513,11 +514,10 @@ public class Ant {
     private void setActionScores() {
         this.setChangeStateScore();
         this.stateChangeFunction();
-        
+
         this.setMoveScores();
         this.setDropPheromoneScores();
         this.setPickUpFoodScore();
-        
 
     }
 
@@ -528,7 +528,7 @@ public class Ant {
         if (this.alive == true) {
             this.dropPheromoneFunction();
             this.pickUpFoodFunction();
-            
+
         }
     }
 
@@ -536,64 +536,51 @@ public class Ant {
         boolean threshHoldPassed = false;
         double temp;
         double highestScore = 0;
-        int highestIndex = 0;
+
         Random rand = new Random();
 
         for (int i = 0; i < myMovementScores.length; i++) {
-            temp = myMovementScores[i];
-            if (highestScore < myMovementScores[i]) {
-                highestScore = myMovementScores[i];
-                highestIndex = i;
+            for (int j = 0; j < myMovementScores.length; j++) {
+                if (Math.abs(myMovementScores[i] - myMovementScores[j]) > this.randomnessFactor) {
+                    threshHoldPassed = true;
+                }
             }
         }
-        /*
-         for (int i = 0; i < myMovementScores.length; i++) {
-         for (int j = 0; j < myMovementScores.length; j++) {
-         if (Math.abs(myMovementScores[i] - myMovementScores[j]) <= this.randomnessFactor) {
-         threshHoldPassed = false;
-         } else {
-         threshHoldPassed = true;
-         }
-         }
-
-         }
-        
-         int[] tempArray = new int [9];
-         System.arraycopy(myMovementScores, 0, tempArray, 0, tempArray.length);
-         Arrays.sort(tempArray);
-        
-         int[] sortedIndex = new int [9];
-         for(int i=0; i<9;i++){
-         for(int j = 0; j<9; j++){
-         // if
-         // sortedIndex[i] =
-         }
-         }
-        
-         double t =0;
-         int u = 0;
-        
-         for(int i = 0; i< sortedIndex.length; i++){
-         for(int j = 1; j<sortedIndex.length; j++){
-         t=myMovementScores[i];
-         }
-         }
-         if (threshHoldPassed == false) {
-         int[] normalDistribution = new int [9];
-         for(int i = 4; i < normalDistribution.length; i++){
-                
-         }
-            
-            
-            
-
-         }// else { */
-    //if(this.threshHoldPassed)
         int prevX = this.xPos;
         int prevY = this.yPos;
-        if (highestIndex >= 0 && highestIndex <= 2) {
 
-            this.setPosition(mySurroundings[highestIndex].getX(), mySurroundings[highestIndex].getY());
+        if (threshHoldPassed == true) { //simply use the highest score
+            for (int i = 0; i < myMovementScores.length; i++) {
+                temp = myMovementScores[i];
+                if (highestScore < myMovementScores[i]) {
+                    highestScore = myMovementScores[i];
+                    currHighestIndex = i;
+                }
+            }
+        } else {
+            //need sorted array of indexes
+            //first copy movement array to temp array
+            // then create array to store sorted indexes
+            // sort the temp array then compare each value in there to the value in the original 
+            //when the value in the real array matches the temp one save the index of the real one into the corrosponding index of the sorted array of indices
+            /*double[] tempArray = new double[myMovementScores.length];
+             System.arraycopy(myMovementScores, 0, tempArray, 0, myMovementScores.length);
+             Arrays.sort(tempArray);
+             int[] sortedIndices = new int[myMovementScores.length];
+             for(int i = 0; i< myMovementScores.length; i++){
+             for(int j = 0; j< myMovementScores.length; j++){
+             if(tempArray[i] == myMovementScores[j]){
+             sortedIndices[i]=j;
+             }
+             }
+             }*/
+            int t = rand.nextInt(9);
+            currHighestIndex = t;
+
+        }
+        if (currHighestIndex >= 0 && currHighestIndex <= 2) {
+
+            this.setPosition(mySurroundings[currHighestIndex].getX(), mySurroundings[currHighestIndex].getY());
         } else {
 
             int randomX = rand.nextInt(3) - 1;
@@ -623,35 +610,102 @@ public class Ant {
                 this.setDirection("W");
             }
         }
-        //}
+
     }
 
     private void dropPheromoneFunction() {
-        if (dropNPScore >= dropFPScore && dropNPScore >= dropHPScore) {
 
-        } else if (dropFPScore >= dropNPScore && dropFPScore >= dropHPScore) {
-            this.dropFoodPheromone();
-        } else if (dropHPScore >= dropFPScore && dropHPScore >= dropNPScore) {
-            this.dropHomePheromone();
+        double[] dropPArray = new double[3];
+        dropPArray[0] = dropNPScore;
+        dropPArray[1] = dropFPScore;
+        dropPArray[2] = dropHPScore;
+        boolean threshHoldPassed = false;
+
+        for (int i = 0; i < dropPArray.length; i++) {
+            for (int j = 0; j < dropPArray.length; j++) {
+                if (Math.abs(dropPArray[i] - dropPArray[j]) > randomnessFactor) {
+                    threshHoldPassed = true;
+                }
+            }
+        }
+
+        if (threshHoldPassed == true) {
+            if (dropNPScore >= dropFPScore && dropNPScore >= dropHPScore) {
+
+            } else if (dropFPScore >= dropNPScore && dropFPScore >= dropHPScore) {
+                this.dropFoodPheromone();
+            } else if (dropHPScore >= dropFPScore && dropHPScore >= dropNPScore) {
+                this.dropHomePheromone();
+            }
+        } else {
+            Random rand = new Random();
+            int r = rand.nextInt(3);
+            if (r == 2) {
+                this.dropHomePheromone();
+            } else if (r == 1) {
+                this.dropFoodPheromone();
+            }
+
         }
     }
 
     private void stateChangeFunction() {
-        if (keepStateScore >= changeStateScore) {
+        boolean threshHoldPassed = false;
+        if (Math.abs(keepStateScore - changeStateScore) > randomnessFactor) {
+            threshHoldPassed = true;
+        }
 
-        } else if (changeStateScore > keepStateScore) {
-            this.changeState();
+        if (threshHoldPassed = false) {
+
+            Random rand = new Random();
+            int r = rand.nextInt(2);
+
+            if (r == 0) {
+                this.changeState();
+            }
+
+        } else {
+
+            if (keepStateScore >= changeStateScore) {
+
+            } else if (changeStateScore > keepStateScore) {
+                this.changeState();
+            }
+
         }
     }
 
     private void pickUpFoodFunction() {
+        double[] pickUpFoodArray = new double[3];
+        pickUpFoodArray[0] = dontPickUpScore;
+        pickUpFoodArray[1] = pickUpFoodScore;
+        pickUpFoodArray[2] = dropFoodScore;
+        boolean threshHoldPassed = false;
 
-        if (dontPickUpScore >= pickUpFoodScore && dontPickUpScore >= dropFoodScore) {
+        for (int i = 0; i < pickUpFoodArray.length; i++) {
+            for (int j = 0; j < pickUpFoodArray.length; j++) {
+                if (Math.abs(pickUpFoodArray[i] - pickUpFoodArray[j]) > randomnessFactor) {
+                    threshHoldPassed = true;
+                }
+            }
+        }
+        if (threshHoldPassed == true) {
+            if (dontPickUpScore >= pickUpFoodScore && dontPickUpScore >= dropFoodScore) {
 
-        } else if (pickUpFoodScore >= dontPickUpScore && pickUpFoodScore >= dropFoodScore) {
-            this.pickUpFood();
-        } else if (dropFoodScore >= dontPickUpScore && dropFoodScore >= pickUpFoodScore) {
-            this.dropFood();
+            } else if (pickUpFoodScore >= dontPickUpScore && pickUpFoodScore >= dropFoodScore) {
+                this.pickUpFood();
+            } else if (dropFoodScore >= dontPickUpScore && dropFoodScore >= pickUpFoodScore) {
+                this.dropFood();
+            }
+        } else {
+            Random rand = new Random();
+            int r = rand.nextInt(3);
+            if (r == 3) {
+                this.dropFood();
+            } else if (r == 2) {
+                this.pickUpFood();
+            }
+
         }
     }
 
@@ -678,7 +732,6 @@ public class Ant {
         return this.foodCollectedSCore;
     }
 
-    
     public boolean getDOA() {
         return this.alive;
     }
@@ -691,12 +744,14 @@ public class Ant {
         this.appendingBegan = yn;
 
     }
-    
-    public void setHasFood(boolean yn){
-        if (yn == true){
-            this.hasFood= true;
-        }else this.hasFood = false;
-        
+
+    public void setHasFood(boolean yn) {
+        if (yn == true) {
+            this.hasFood = true;
+        } else {
+            this.hasFood = false;
+        }
+
     }
 
 }
