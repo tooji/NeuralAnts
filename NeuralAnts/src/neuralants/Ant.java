@@ -17,7 +17,10 @@ import java.util.Arrays;
  * @author tooji
  */
 public class Ant {
-
+    
+    private double[] IOTestArray = new double[14];
+    private double[] IOTestOutputArray = new double[4];
+    
     private int randomnessFactor;
     private int xPos;
     private int yPos;
@@ -29,9 +32,9 @@ public class Ant {
     private String state;
     private boolean alive;
     private String direction;
-    private static ArrayList<Food> foodIHave = new ArrayList<Food>();
+    private ArrayList<Food> foodIHave = new ArrayList<Food>();
     private Artifact[] mySurroundings = new Artifact[3];
-    private double[] myMovementScores = new double[9];
+    private double[] myMovementScores = new double[3];
     //Pheromone Scores
     private double dropHPScore;
     private double dropFPScore;
@@ -44,6 +47,8 @@ public class Ant {
     private double dropFoodScore;
     private double dontPickUpScore;
     private int currHighestIndex;
+    private int stepCounterToPlant;
+    private int stepCounterToHome;
 
     public Ant() {
         this.hasFood = false;
@@ -97,7 +102,7 @@ public class Ant {
             this.xPos = x;
             this.yPos = y;
             if (myWorld.getWorldObject(this.xPos, this.yPos) instanceof plant) {
-                System.out.println("look ma I got maself to a plant!");
+                System.out.println("look ma I got maself to a plant! antID "+ this.antID);
             }
 
         }
@@ -222,12 +227,28 @@ public class Ant {
         // System.out.println("Ant "+this.getAntID()+"is thinking");
         // System.out.println("Getting Sensory Information");
         this.getSurroundings();
+        
+        
+        for(int i=0 ; i<mySurroundings.length; i++){
+           
+           IOTestArray[i]=myWorld.getWorldObject(mySurroundings[i].getX(),mySurroundings[i].getY()).getFoodPheromoneScent(homeNumber);
+            IOTestArray[i+3]=myWorld.getWorldObject(mySurroundings[i].getX(),mySurroundings[i].getY()).getHomePheromoneScent(homeNumber);
+            IOTestArray[i+6]=myWorld.getWorldObject(mySurroundings[i].getX(),mySurroundings[i].getY()).getHomeScent(homeNumber);
+            IOTestArray[i+9]= myWorld.getWorldObject(mySurroundings[i].getX(), mySurroundings[i].getY()).getFoodScent();
+        }
+        if(this.getState().matches("FindFood")) IOTestArray[12] = 0;
+        else if(this.getState().matches("FindHome")) IOTestArray[12] = 1;
+        if(this.hasFood() == true) IOTestArray[13] = 1;
+        else IOTestArray[13] = 0;
+        
         // System.out.println("Setting Scores");
         //get scores for each action
         this.setActionScores();
         //System.out.println("Computing Action");
         //carry out action based on best score(probability)
         this.computeActions();
+        
+        NeuralAnts.appendAntIO(IOTestArray, IOTestOutputArray);
 
     }
 
@@ -236,7 +257,7 @@ public class Ant {
     
      }*/
     public void pickUpFood() {
-        if (foodIHave.isEmpty()) {
+        if (this.foodIHave.isEmpty()) {
             myWorld.getWorldObject(this.xPos, this.yPos).pickUpFirstFood(this);
 
         }
@@ -251,7 +272,10 @@ public class Ant {
                     foodIHave.remove(foodIHave.size()-1);
                     this.hasFood = false;
                     this.foodCollectedSCore++;
-                    System.out.println("ant ID " + this.antID + "just brought some food back home his score is now " + this.foodCollectedSCore);
+                    myWorld.getWorldObject(xPos, yPos).addToStepsToDropOff(stepCounterToHome);
+                    System.out.println("ant ID " + this.antID + "just brought some food back home his score is now " + this.foodCollectedSCore+"it took him "+stepCounterToHome+"steps");
+                    stepCounterToHome = 0;
+                    
                     ((home) myWorld.getWorldObject(this.xPos, this.yPos)).collectFood();
                     System.out.println("the total food brought back to this home is now " + ((home) myWorld.getWorldObject(this.xPos, this.yPos)).getFoodColleectedSCore());
 
@@ -386,7 +410,13 @@ public class Ant {
         }
 
         if (this.getState().matches("FindFood")) {
-            if (currHighestIndex < 3) {
+             int randFactor = rand.nextInt(randomnessFactor + 1);
+            dropHPScore= 50 + randFactor;
+            randFactor = rand.nextInt(randomnessFactor + 1);
+            dropFPScore = randFactor;
+            randFactor = rand.nextInt(randomnessFactor + 1);
+            dropNPScore = randFactor;
+            /*if (currHighestIndex < 3) {
 
                 int randFactor = rand.nextInt(randomnessFactor + 1);
 
@@ -407,9 +437,16 @@ public class Ant {
                 dropFPScore = randFactor;
 
             }
-
+            */
         } else if (this.getState().matches("FindHome")) {
-            if (currHighestIndex < 3) {
+            int randFactor = rand.nextInt(randomnessFactor + 1);
+            dropFPScore= 50 + randFactor;
+            randFactor = rand.nextInt(randomnessFactor + 1);
+            dropHPScore = randFactor;
+            randFactor = rand.nextInt(randomnessFactor + 1);
+            dropNPScore = randFactor;
+            
+            /*if (currHighestIndex < 3) {
 
                 int randFactor = rand.nextInt(randomnessFactor + 1);
                 dropFPScore = 2 * myWorld.getWorldObject(mySurroundings[currHighestIndex].getX(), mySurroundings[currHighestIndex].getY()).getHomeScent(this.homeNumber) + myWorld.getWorldObject(mySurroundings[currHighestIndex].getX(), mySurroundings[currHighestIndex].getY()).getHomePheromoneScent(this.homeNumber) + randFactor;
@@ -429,7 +466,7 @@ public class Ant {
                 randFactor = rand.nextInt(randomnessFactor + 1);
                 dropFPScore = randFactor;
             }
-
+            */
         } else {
             System.out.println("Ant state invalid cannot compute dropP score");
 
@@ -576,10 +613,12 @@ public class Ant {
              }*/
             int t = rand.nextInt(9);
             currHighestIndex = t;
+            IOTestOutputArray[0]=3;
 
         }
         if (currHighestIndex >= 0 && currHighestIndex <= 2) {
-
+            IOTestOutputArray[0]=currHighestIndex;
+            
             this.setPosition(mySurroundings[currHighestIndex].getX(), mySurroundings[currHighestIndex].getY());
         } else {
 
@@ -609,6 +648,10 @@ public class Ant {
             } else if ((this.xPos - prevX) < 0) {
                 this.setDirection("W");
             }
+        } if (getState().matches("FindFood")){
+            stepCounterToPlant++;
+        }else if(getState().matches("FindHome")){
+            stepCounterToHome++;
         }
 
     }
@@ -634,16 +677,20 @@ public class Ant {
 
             } else if (dropFPScore >= dropNPScore && dropFPScore >= dropHPScore) {
                 this.dropFoodPheromone();
+                 IOTestOutputArray[1]=1;
             } else if (dropHPScore >= dropFPScore && dropHPScore >= dropNPScore) {
-                this.dropHomePheromone();
+                this.dropHomePheromone(); 
+                IOTestOutputArray[1]=0;
             }
         } else {
             Random rand = new Random();
             int r = rand.nextInt(3);
             if (r == 2) {
                 this.dropHomePheromone();
+                IOTestOutputArray[1]=0;
             } else if (r == 1) {
                 this.dropFoodPheromone();
+                IOTestOutputArray[1]=1;
             }
 
         }
@@ -662,14 +709,17 @@ public class Ant {
 
             if (r == 0) {
                 this.changeState();
-            }
+                IOTestOutputArray[3]=1;
+                
+            }else IOTestOutputArray[3]=0;
 
         } else {
 
             if (keepStateScore >= changeStateScore) {
-
+                IOTestOutputArray[3]=0;
             } else if (changeStateScore > keepStateScore) {
                 this.changeState();
+                IOTestOutputArray[3]=1;
             }
 
         }
@@ -691,20 +741,24 @@ public class Ant {
         }
         if (threshHoldPassed == true) {
             if (dontPickUpScore >= pickUpFoodScore && dontPickUpScore >= dropFoodScore) {
-
+                IOTestOutputArray[2]=2;
             } else if (pickUpFoodScore >= dontPickUpScore && pickUpFoodScore >= dropFoodScore) {
                 this.pickUpFood();
+                IOTestOutputArray[2]=0;
             } else if (dropFoodScore >= dontPickUpScore && dropFoodScore >= pickUpFoodScore) {
                 this.dropFood();
+                IOTestOutputArray[2]=1;
             }
         } else {
             Random rand = new Random();
             int r = rand.nextInt(3);
             if (r == 3) {
                 this.dropFood();
+                IOTestOutputArray[2]=1;
             } else if (r == 2) {
                 this.pickUpFood();
-            }
+                IOTestOutputArray[2]=0;
+            }else IOTestOutputArray[2]=2;
 
         }
     }
@@ -752,6 +806,22 @@ public class Ant {
             this.hasFood = false;
         }
 
+    }
+    
+    public int getStepsToPlant(){
+        return stepCounterToPlant;
+    }
+    
+    public int getStepsToHome(){
+        return stepCounterToHome;
+    }
+    
+    public void resetStepsToHome(){
+        stepCounterToHome= 0;
+    }
+    
+    public void resetStepsToPlant(){
+        stepCounterToPlant=0;
     }
 
 }

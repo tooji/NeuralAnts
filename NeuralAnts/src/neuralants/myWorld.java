@@ -12,6 +12,8 @@ import java.util.Iterator;
 import java.util.Comparator;
 import java.io.*;
 import java.util.Collections;
+import java.util.Scanner;
+import java.util.StringJoiner;
 
 /**
  *
@@ -40,7 +42,7 @@ public class myWorld {
      *the world is a 2-D array of artifacts consisting of land, water, plants, obstacles, and homes
      *@param s should be path of .dat file
      */
-    public static void createTerrain(String s) {
+    public static void createTerrain(String s, boolean tf) {
 
         final int numDataLines = 4;
         String curLine;
@@ -72,14 +74,14 @@ public class myWorld {
                         if (row == 0) {
                             System.out.println("World must Have atleast 1 row");
                             throw new IOException();
-                        }
+                        } 
                     } else {
                         System.out.println("First row of data file must be of format 'row= #'");
                         throw new IOException();
                     }
                 } else if (curRowNumber == 1) {     //if the second line is col= #, read the data
-
-                    if (curLine.matches("col=\\s\\d+")) {
+                        System.out.println(curLine);
+                    if (curLine.matches(".*col=\\s\\d+.*")) {
 
                         String[] parts = curLine.split("\\s");
                         colS = parts[1];
@@ -162,90 +164,94 @@ public class myWorld {
             int curRowNumberX = 0;   // keep current count of rows
             int terrainRow = row;
             int homeCount = 0;
-            while ((curLine = br.readLine()) != null) {
+            if (tf == false) {
 
-                if (curRowNumberX > (numDataLines - 1)) { //for all the following rows read the data into the terrain
-                    // System.out.println("terrainRow =  " + terrainRow);
-                    //int terrainRow = curRowNumberX - numDataLines;     //keep a temp var that stores the current row of the terrain being read
-                    //create an array of artifacts-- artifacts can be land, obstacle, water, plant
-                    if (curLine.matches("([O|L|W|P])\\w+")) {  //if the row has has the right format
-                        //System.out.println("Line has right format");
-                        char[] lineWorld = curLine.toCharArray();   //chop up line into character array called lineworld
+                while ((curLine = br.readLine()) != null) {
 
-                        if (col != lineWorld.length) {       //check for the right size
-                            System.out.println("set column size does not match actual column size, error occured on row: " + curRowNumberX);
-                            throw new IOException();
-                        }
+                    if (curRowNumberX > (numDataLines - 1)) { //for all the following rows read the data into the terrain
+                        // System.out.println("terrainRow =  " + terrainRow);
+                        //int terrainRow = curRowNumberX - numDataLines;     //keep a temp var that stores the current row of the terrain being read
+                        //create an array of artifacts-- artifacts can be land, obstacle, water, plant
+                        if (curLine.matches("([O|L|W|P])\\w+")) {  //if the row has has the right format
+                            //System.out.println("Line has right format");
+                            char[] lineWorld = curLine.toCharArray();   //chop up line into character array called lineworld
 
-                        for (int i = 0; i < col; i++) {
-                            //System.out.println("linworld[i]= " + lineWorld[i]);
-                            if (terrainRow >= 0) {
-                                if (lineWorld[i] == 'L') {
-                                    world[i][terrainRow] = new land();
-                                    world[i][terrainRow].setPosition(i, terrainRow);
-                                    world[i][terrainRow].setFoodScent(0);
-                                    //world[i][terrainRow].getMyType();
-                                    // System.out.println("At pos: " + i + " , " + terrainRow);
-
-                                }
-
-                                if (lineWorld[i] == 'W') {
-                                    world[i][terrainRow] = new water();
-                                    world[i][terrainRow].setPosition(i, terrainRow);
-                                    world[i][terrainRow].setFoodScent(0);
-                                    //world[i][terrainRow].getMyType();
-                                    // System.out.println("At pos: " + i + " , " + terrainRow);
-                                }
-
-                                if (lineWorld[i] == 'O') {
-                                    world[i][terrainRow] = new obstacle();
-                                    world[i][terrainRow].setPosition(i, terrainRow);
-                                    world[i][terrainRow].setFoodScent(0);
-                                    //world[i][terrainRow].getMyType();
-                                    if (i != 0 && terrainRow != 0) {
-                                        obstacleCount++;
-                                    }
-                                    //System.out.println("At pos: " + i + " , " + terrainRow);
-                                }
-
-                                if (lineWorld[i] == 'P') {
-                                    world[i][terrainRow] = new plant();
-                                    world[i][terrainRow].setPosition(i, terrainRow);
-                                    world[i][terrainRow].setFoodScent(0);
-                                    //world[i][terrainRow].getMyType();
-                                    plantCount++;
-                                    //System.out.println("At pos: " + i + " , " + terrainRow);
-                                }
-
-                                if (lineWorld[i] == 'H') {
-                                    world[i][terrainRow] = new land();
-                                    world[i][terrainRow].setPosition(i, terrainRow);
-                                    world[i][terrainRow].setFoodScent(0);
-                                    world[i][terrainRow] = new home(world[i][terrainRow]);
-                                    ((home) world[i][terrainRow]).setHomeNumber(homeCount); //home identification tag is 0 indexed
-                                    homePositions[homeCount] = new home(world[i][terrainRow]);
-                                    homeCount++;
-                                    System.out.println("homeCount is now " + homeCount + "and the amount of set homes is" + homes);
-                                    
-                                    if(homeCount > homes){
-                                        System.out.println("More homes than specified");
-                                        throw new IOException();
-                                    }
-                                }
-
+                            if (col != lineWorld.length) {       //check for the right size
+                                System.out.println("set column size does not match actual column size, error occured on row: " + curRowNumberX);
+                                throw new IOException();
                             }
+
+                            for (int i = 0; i < col; i++) {
+                                //System.out.println("linworld[i]= " + lineWorld[i]);
+                                if (terrainRow >= 0) {
+                                    if (lineWorld[i] == 'L') {
+                                        world[i][terrainRow] = new land();
+                                        world[i][terrainRow].setPosition(i, terrainRow);
+                                        world[i][terrainRow].setFoodScent(0);
+                                    //world[i][terrainRow].getMyType();
+                                        // System.out.println("At pos: " + i + " , " + terrainRow);
+
+                                    }
+
+                                    if (lineWorld[i] == 'W') {
+                                        world[i][terrainRow] = new water();
+                                        world[i][terrainRow].setPosition(i, terrainRow);
+                                        world[i][terrainRow].setFoodScent(0);
+                                    //world[i][terrainRow].getMyType();
+                                        // System.out.println("At pos: " + i + " , " + terrainRow);
+                                    }
+
+                                    if (lineWorld[i] == 'O') {
+                                        world[i][terrainRow] = new obstacle();
+                                        world[i][terrainRow].setPosition(i, terrainRow);
+                                        world[i][terrainRow].setFoodScent(0);
+                                        //world[i][terrainRow].getMyType();
+                                        if (i != 0 && terrainRow != 0) {
+                                            obstacleCount++;
+                                        }
+                                        //System.out.println("At pos: " + i + " , " + terrainRow);
+                                    }
+
+                                    if (lineWorld[i] == 'P') {
+                                        world[i][terrainRow] = new plant();
+                                        world[i][terrainRow].setPosition(i, terrainRow);
+                                        world[i][terrainRow].setFoodScent(0);
+                                        //world[i][terrainRow].getMyType();
+                                        plantCount++;
+                                        //System.out.println("At pos: " + i + " , " + terrainRow);
+                                    }
+
+                                    if (lineWorld[i] == 'H') {
+                                        world[i][terrainRow] = new land();
+                                        world[i][terrainRow].setPosition(i, terrainRow);
+                                        world[i][terrainRow].setFoodScent(0);
+                                        world[i][terrainRow] = new home(world[i][terrainRow]);
+                                        ((home) world[i][terrainRow]).setHomeNumber(homeCount); //home identification tag is 0 indexed
+                                        homePositions[homeCount] = new home(world[i][terrainRow]);
+                                        homeCount++;
+                                        System.out.println("homeCount is now " + homeCount + "and the amount of set homes is" + homes);
+
+                                        if (homeCount > homes) {
+                                            System.out.println("More homes than specified");
+                                            throw new IOException();
+                                        }
+                                    }
+
+                                }
+                            }
+                        } else {
+                            // System.out.println("Match")
                         }
-                    } else {
-                        // System.out.println("Match")
+
+                        // System.out.println(curRowNumber);
+                        terrainRow--;
                     }
 
-                    // System.out.println(curRowNumber);
-                    terrainRow--;
+                    curRowNumberX++;
+
                 }
 
-                curRowNumberX++;
-
-            }
+            }else randomWorldGenerator(col, row);
 
             plantPositions = new Artifact[plantCount];
             obstaclePositions = new Artifact[obstacleCount];
@@ -255,7 +261,6 @@ public class myWorld {
 
         } catch (IOException e) {
             System.out.println(e.getClass());
-
         } finally {
             if (br != null) {
                 try {
@@ -326,7 +331,7 @@ public class myWorld {
             }
 
             System.out.println("done generating ant colonies");
-            //printWorld();
+            //();
             //intialize plant positions
             initializePlantPositions();
             //initialize obstacle positions
@@ -346,7 +351,7 @@ public class myWorld {
 
         }
     }
-    
+
     public static void generateAntColonies() {
         for (int k = 0; k < homePositions.length; k++) {
             System.out.println("homePositions[k].getX()=  " + homePositions[k].getX() + " homePositions[k].getY()= " + homePositions[k].getY());
@@ -355,7 +360,7 @@ public class myWorld {
 
         }
     }
-    
+
     public static void initializePlantPositions() {
         int plantCounter = 0;
         for (int i = 0; i < col; i++) {
@@ -376,7 +381,7 @@ public class myWorld {
         for (int i = 0; i < col; i++) {
             for (int j = 0; j < row; j++) {
                 if (world[i][j] instanceof obstacle) {
-                    if (!(world[i][j].getY() == 0 || world[i][j].getX() == 0)) {
+                    if (!(world[i][j].getY() == 0 || world[i][j].getX() == 0)){ //|| world[i][j].getY() == (row-1) || world[i][j].getX() == (col-1) )) {
                         obstaclePositions[obstacleCounter] = new obstacle(world[i][j]);
                         obstacleCounter++;
                     }
@@ -752,20 +757,25 @@ public class myWorld {
         System.out.println("row  " + row);
         int j = (row - 1);
         for (; j >= 0; j--) {
+            StringJoiner joiner = new StringJoiner("");
             for (int i = 0; i < col; i++) {
                 //System.out.println("i is "+i);
+                
                 if (myWorld.getWorldObject(i, j) instanceof land) {
-                    System.out.println("L");
+                    joiner.add("L");
                 } else if (myWorld.getWorldObject(i, j) instanceof obstacle) {
-                    System.out.println("O");
+                    joiner.add("O");
                 } else if (myWorld.getWorldObject(i, j) instanceof water) {
-                    System.out.println("W");
+                    joiner.add("W");
                 } else if (myWorld.getWorldObject(i, j) instanceof land) {
-                    System.out.println("L");
-                } else if (myWorld.getWorldObject(i, j) instanceof land) {
-                    System.out.println("P");
+                    joiner.add("L");
+                } else if (myWorld.getWorldObject(i, j) instanceof plant) {
+                    joiner.add("P");
+                } else if (myWorld.getWorldObject(i, j) instanceof home) {
+                    joiner.add("H");
                 }
             }
+            System.out.println(joiner.toString());
         }
 
     }
@@ -822,11 +832,65 @@ public class myWorld {
 
     public static void testingEnvironment() {
         //provides area to test actions of ants
-        
+
         //col = 5;
         //row =
     }
     
+    public static int getAmountOfPlants(){
+        return plantCount;
+    }
+    
+    public static Artifact getPlant(int h){
+        return myWorld.getWorldObject(plantPositions[h].getX(), plantPositions[h].getY());
+    }
+
+    public static void randomWorldGenerator(int col, int row) {
+        Random rand = new Random();
+        for (int i = 0; i < col; i++) {
+            for (int j = 0; j < row; j++) {
+                if (i == 0 || j == 0 || i == (col-1) || j==(row-1)) {
+                    world[i][j] = new obstacle();
+                    world[i][j].setPosition(i, j);
+                    world[i][j].setFoodScent(0);
+                } else {
+
+                    int r = rand.nextInt(100);
+                    if (r >= 0 && r < 80) {
+                        world[i][j] = new land();
+                        world[i][j].setPosition(i, j);
+                        world[i][j].setFoodScent(0);
+                    } else if (r >= 80 && r < 85) {
+                        world[i][j] = new water();
+                        world[i][j].setPosition(i, j);
+                        world[i][j].setFoodScent(0);
+                    } else {
+                        world[i][j] = new obstacle();
+                        world[i][j].setPosition(i, j);
+                        obstacleCount++;
+
+                    }
+
+                }
+
+            }
+        }
+
+        System.out.println("Please enter the the number of plants you want");
+        Scanner keyboard = new Scanner(System.in);
+        String n = keyboard.nextLine();
+        plantCount = Integer.parseInt(n);
+        int pc = 0;
+        while (pc < plantCount) {
+            int randomY = rand.nextInt((row));
+            int randomX = rand.nextInt((col));
+            if (world[randomX][randomY] instanceof land && !(world[randomX][randomY] instanceof home)) {
+                world[randomX][randomY] = new plant(world[randomX][randomY]);
+                pc++;
+            }
+
+        }
+    }
 
 }
 

@@ -5,6 +5,7 @@
  */
 package neuralants;
 
+import java.util.ArrayList;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -14,6 +15,7 @@ import java.util.Scanner;
 import java.io.PrintWriter;
 import java.io.FileWriter;
 import java.io.BufferedWriter;
+import java.util.StringJoiner;
 import static neuralants.myWorld.disperseFoodPheromoneScent;
 import static neuralants.myWorld.disperseFoodSmells;
 import static neuralants.myWorld.disperseHomePheromoneScent;
@@ -35,8 +37,10 @@ public class NeuralAnts {
     private static int generateFoodEvery;
     private static int trials;
     private static boolean randomlyGenerateHomes;
+    private static boolean randomlyGenerateWorld;
     private static int generateAntEvery;
     private static String initialAntDir;
+    private static int currentSimStep;
 
     /**
      * @param args the command line arguments
@@ -46,20 +50,20 @@ public class NeuralAnts {
         //Scanner keyboard = new Scanner(System.in);
 
         //String path = keyboard.nextLine();
-        initializeSim("C:\\Users\\tooji\\Desktop\\sim.dat");
+        initializeSim("C:\\Users\\Billy\\Desktop\\sim.dat");
 
         System.out.println("Please enter the path of the world.dat file");
         // keyboard = new Scanner(System.in);
         //path = keyboard.nextLine();
 
-        myWorld.createTerrain("C:\\Users\\tooji\\Desktop\\testWorld1.dat");
+        myWorld.createTerrain("C:\\Users\\Billy\\Desktop\\MapE1T1.dat", randomlyGenerateWorld);
         //myWorld.GenerateHomes();
 
         System.out.println("Please enter the path for the data from this trial");
         // keyboard = new Scanner(System.in);
         //path = keyboard.nextLine();
 
-        runSim("C:\\Users\\tooji\\Documents\\AntData");
+        runSim("C:\\Users\\Billy\\Documents\\AntData");
     }
 
     /**
@@ -68,7 +72,7 @@ public class NeuralAnts {
      *
      */
     public static void runSim(String s) {
-        if (randomlyGenerateHomes == true) {
+        if (randomlyGenerateHomes == true || randomlyGenerateWorld == true) {
             myWorld.generateHomes();
         } else {
             //intialize plant positions
@@ -76,8 +80,19 @@ public class NeuralAnts {
             //initialize obstacle positions
             initializeObstacletPositions();
         }
+        myWorld.printWorld();
 
-        myWorld.generateFood(foodGenerationRate);//generates 5 food at each plant
+        myWorld.generateFood(foodGenerationRate);//generates initial food at each plant
+
+        for (int ar = 0; ar < antReleaseFactor; ar++) {
+            for (int k = 0; k < myWorld.getAmountOfHomes(); k++) {
+                if (((home) myWorld.getHome(k)).getHomePoolSize() > 0) {
+                    //need to make a pool of ants on the map and cycle through them and make them think()
+                    myWorld.addToWorldPool(((home) myWorld.getHome(k)).releaseAnt());   //removes ant from the home's pool and adds it to the current world pool
+                }
+            }
+        }
+
         System.out.println("dispersing initial smells");
         for (int col = 0; col < myWorld.getAmountOfColumns(); col++) {
             for (int row = 0; row < myWorld.getAmountOfRows(); row++) {
@@ -87,29 +102,32 @@ public class NeuralAnts {
                 myWorld.disperseHomeSmells(col, row);
             }
         }
-        
-        if(initialAntDir == null){
+
+        if (initialAntDir == null) {
             myWorld.generateAntColonies();
-        }else{
+        } else {
             myWorld.generateAntColonies(initialAntDir);
         }
-        
 
-        for (int i = 0; i < simLength; i++) {//simulation runs for specified number of steps
-            System.out.println("SimStep" + i + "/" + simLength);
-            
-            if (i % 20 == 0) {
+        int generateFoodEveryCounter = 0;
+        int generateAntEveryCounter = 0;
+        int releaseAntEveryCounter = 0;
+
+        for (currentSimStep = 0; currentSimStep < simLength; currentSimStep++) {//simulation runs for specified number of steps
+            System.out.println("SimStep: " + currentSimStep + "/" + simLength);
+
+            if (currentSimStep % 20 == 0) {
                 for (int p = 0; p < myWorld.getAmountOfHomes(); p++) {
-                    worldSnapShot(i, p, s);
+                    worldSnapShot(currentSimStep, p, s);
                 }
 
             }
 
             //release specified amount of ants from every home every step 
             //releaseAnts();
-          
-            if (i % releaseAntsEvery == 0) {
-              //  System.out.println("--releasing ants--simStep " + i + "/" + simLength);
+            if (releaseAntEveryCounter == releaseAntsEvery) {
+                releaseAntEveryCounter = 0;
+                //  System.out.println("--releasing ants--simStep " + i + "/" + simLength);
                 for (int ar = 0; ar < antReleaseFactor; ar++) {
                     for (int k = 0; k < myWorld.getAmountOfHomes(); k++) {
                         if (((home) myWorld.getHome(k)).getHomePoolSize() > 0) {
@@ -120,11 +138,12 @@ public class NeuralAnts {
                 }
             }
             //
-            myWorld.makeWorldThink(i, s);
+            myWorld.makeWorldThink(currentSimStep, s);
 
             //generateAnts();
             //System.out.println("--generating ants--");
-            if (i % generateAntEvery == 0) {
+            if (generateAntEveryCounter == generateAntEvery) {
+                generateAntEveryCounter = 0;
                 for (int u = 0; u < antGenerationRate; u++) {   //new ants are generated at every home specified by antGenerationRate
                     for (int h = 0; h < myWorld.getAmountOfHomes(); h++) {
                         //System.out.println("h is "+ h);
@@ -139,7 +158,8 @@ public class NeuralAnts {
                 }
             }
 
-            if (i % generateFoodEvery == 0) {
+            if (generateFoodEveryCounter == generateFoodEvery) {
+                generateFoodEveryCounter = 0;
                 myWorld.generateFood(foodGenerationRate);
             }
 
@@ -174,8 +194,19 @@ public class NeuralAnts {
                 }
             }
 
+            generateFoodEveryCounter++;
+            generateAntEveryCounter++;
+            releaseAntEveryCounter++;
+
         }
 
+        for (int i = 0; i < myWorld.getAmountOfPlants(); i++) {
+            AppendStepsToPlant(myWorld.getPlant(i).getStepsToFood(), myWorld.getPlant(i).getX(), myWorld.getPlant(i).getY());
+        }
+
+        for (int i = 0; i < myWorld.getAmountOfHomes(); i++) {
+            AppendStepsToHome(myWorld.getHome(i).getStepsHome(), myWorld.getHome(i).getX(), myWorld.getHome(i).getY());
+        }
         System.out.println("--simulation is over--");
         myWorld.sortAnts();
 
@@ -301,8 +332,8 @@ public class NeuralAnts {
                     String[] parts = curLine.split("\\s");
                     String t = parts[1];
                     int temp = Integer.parseInt(t);
-                    
-                    if ((temp != 1 && temp !=0 )) {
+
+                    if ((temp != 1 && temp != 0)) {
                         System.out.println("Randomly Generate Homes must be either 0 or 1 ");
                         throw new IOException();
                     } else if (temp == 1) {
@@ -330,8 +361,24 @@ public class NeuralAnts {
                     initialAntDir = t;
                     System.out.println("the initial direction of every ant will be" + initialAntDir);
 
-                }
+                } else if (curLine.matches("randomlyGenerateWorld=\\s\\d+")) {
+                    String[] parts = curLine.split("\\s");
+                    String t = parts[1];
+                    int n = Integer.parseInt(t);
+                    System.out.println("the initial direction of every ant will be" + initialAntDir);
 
+                    if ((n != 1 && n != 0)) {
+                        System.out.println("Randomly Generate Worlds must be either 0 or 1 ");
+                        throw new IOException();
+                    } else if (n == 1) {
+                        randomlyGenerateWorld = true;
+                        System.out.println("randomlyGenerateWorld set to TRUE");
+                    } else if (n == 0) {
+                        randomlyGenerateWorld = false;
+                        System.out.println("randomlyGenerateWorld set to FALSE");
+                    }
+
+                }
                 curRowNumber++;
             }
 
@@ -374,7 +421,7 @@ public class NeuralAnts {
         if (x.getAppendingBegan() == false) {
             try (PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(file, true)))) {
 
-                out.println("CurrentStep\tX\tY\tHasFood?\tfoodCollectedScore\tState");
+                out.println("CurrentStep\tX\tY\tHasFood?\tfoodCollectedScore\tState\tStepsToFood\tStepsToHome");
                 x.setAppendingBegan(true);
             } catch (IOException e) {
                 System.err.println(e);
@@ -390,7 +437,7 @@ public class NeuralAnts {
                 temp = 0;
             }
 
-            out.println(currentStep + "\t" + x.getXPos() + "\t" + x.getYPos() + "\t" + temp + "\t" + x.getFoodCollectedScore() + "\t" + x.getState());
+            out.println(currentStep + "\t" + x.getXPos() + "\t" + x.getYPos() + "\t" + temp + "\t" + x.getFoodCollectedScore() + "\t" + x.getState() + "\t" + x.getStepsToPlant() + "\t" + x.getStepsToHome());
 
         } catch (IOException e) {
             System.err.println(e);
@@ -406,7 +453,7 @@ public class NeuralAnts {
             parent_dir.mkdirs();
         }
 
-        try (PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(file)));) {
+        try (PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(file, true)));) {
 
             out.println("X\tY\tfoodPheromoneScent\tfoodScent\tHomePheromoneScent\tHomeScent\tFoodPheromones\tHomePheromones\tFood");
 
@@ -421,4 +468,82 @@ public class NeuralAnts {
         }
     }
 
+    public static void appendAntIO(double[] inputArray, double[] outputArray) {
+        final File file = new File("C:\\Users\\Billy\\Documents\\AntData\\AntTESTINGIOdata.txt");
+        final File parent_dir = file.getParentFile();
+
+        if (null != parent_dir) {
+            parent_dir.mkdirs();
+        }
+        StringJoiner joiner = new StringJoiner("\t");
+        for (int i = 0; i < inputArray.length; i++) {
+            joiner.add(String.valueOf(inputArray[i]));
+        }
+        for (int i = 0; i < outputArray.length; i++) {
+            joiner.add(String.valueOf(outputArray[i]));
+
+        }
+
+        if (outputArray[1] >= 2 || outputArray[2] >= 3) {
+            System.out.println("something is wrong");
+
+        }
+
+        try (PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(file, true)))) {
+            // System.out.print(joiner.toString());
+            out.println(joiner.toString());
+
+        } catch (IOException e) {
+            System.err.println(e);
+        }
+
+    }
+
+    public static void AppendStepsToPlant(ArrayList<Integer> stepsToPlant, int x, int y) {
+        final File file = new File("C:\\Users\\Billy\\Documents\\AntData\\AntStepPlantData(" + x + ")(" + y + ").txt");
+        final File parent_dir = file.getParentFile();
+
+        if (null != parent_dir) {
+            parent_dir.mkdirs();
+        }
+
+        try (PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(file, true)))) {
+            // System.out.print(joiner.toString());
+            StringJoiner joiner = new StringJoiner("\t");
+            //put headings
+
+            out.println("Steps To Find Food");
+            for (int i = 0; i < stepsToPlant.size(); i++) {
+                out.println(String.valueOf(stepsToPlant.get(i)));
+            }
+
+        } catch (IOException e) {
+            System.err.println(e);
+        }
+
+    }
+
+    public static void AppendStepsToHome(ArrayList<Integer> stepsToHome, int x, int y) {
+        final File file = new File("C:\\Users\\Billy\\Documents\\AntData\\AntStepHomeData(" + x + ")(" + y + ").txt");
+        final File parent_dir = file.getParentFile();
+
+        if (null != parent_dir) {
+            parent_dir.mkdirs();
+        }
+
+        try (PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(file, true)))) {
+            // System.out.print(joiner.toString());
+            StringJoiner joiner = new StringJoiner("\t");
+            //put headings
+            out.println("Steps To Find Home");
+
+            for (int i = 0; i < stepsToHome.size(); i++) {
+
+                out.println(String.valueOf(stepsToHome.get(i)));
+            }
+        } catch (IOException e) {
+            System.err.println(e);
+        }
+
+    }
 }

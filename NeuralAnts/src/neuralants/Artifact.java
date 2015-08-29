@@ -26,6 +26,10 @@ public class Artifact {
     private Map<Integer, HomePheromone> homePheromones = new HashMap<>();
     private Map<Integer, FoodPheromone> foodPheromones = new HashMap<>();
     private Map<Integer, Food> foodList = new HashMap<>();
+    private ArrayList<Integer> stepsTakenToPickUpFood = new ArrayList<Integer>();
+    private ArrayList<Integer> stepsToDropOffFood = new ArrayList<Integer>();
+    
+    private int foodPickedUpScore;
 
     public Artifact() {
         this.foodPheromoneScent = new double[myWorld.getAmountOfHomes()];
@@ -37,6 +41,23 @@ public class Artifact {
     public Artifact(Artifact another) {
         this.xPos = another.xPos;
         this.yPos = another.yPos;
+    }
+    
+    public void addToStepsToDropOff(int x){
+        stepsToDropOffFood.add(x);
+        
+    }
+    
+    public int getFoodPickedUpScore(){
+        return foodPickedUpScore;
+    }
+    
+    public ArrayList getStepsToFood(){
+        return stepsTakenToPickUpFood;
+    }
+    
+    public ArrayList getStepsHome(){
+        return stepsToDropOffFood;
     }
 
 
@@ -107,7 +128,7 @@ public class Artifact {
     }
 
     /**
-     * Updates the food pheremone scent at this location
+     * Updates the food pheromone scent at this location
      *
      * @param h is the tribe/home number of the ant
      */
@@ -354,7 +375,11 @@ public class Artifact {
         if (foodList.get(foodList.size() - 1) != null) {
             x.addToFoodIHave(this.foodList.remove(foodList.size() - 1));
             x.setHasFood(true);
-            System.out.println("Hey Ma i just picked up some food! andtID " + x.getAntID());
+            foodPickedUpScore++; 
+            stepsTakenToPickUpFood.add(x.getStepsToPlant());
+            System.out.println("Hey Ma i just picked up some food! andtID " + x.getAntID()+"It took me "+x.getStepsToPlant()+" steps");
+            x.resetStepsToPlant();
+            
         }
     }
 
